@@ -304,7 +304,7 @@ function updateTopProducts() {
       <div class="product-info">
         <div class="product-title">${product.title}</div>
         <div class="product-details">
-          ${product.count} orders | ${product.vendor} | ${product.wheel} | ${product.size}
+          ${product.count} orders | ${product.vendor} | ${product.size}
         </div>
       </div>
       <div class="product-sales">$${product.sales.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</div>
@@ -394,7 +394,7 @@ function updateTopProductsByOrders() {
       <div class="product-info">
         <div class="product-title">${product.title}</div>
         <div class="product-details">
-          ${product.vendor} | ${product.wheel} | ${product.size}
+          ${product.vendor} | ${product.size}
         </div>
       </div>
       <div class="product-sales">${product.count} orders</div>
@@ -684,12 +684,13 @@ function updateSalesChart(viewType = 'daily') {
       ],
       chart: {
         type: 'area',
-        height: 350,
+        height: 250,
         toolbar: {
           show: false
         },
         fontFamily: 'Segoe UI, sans-serif',
-        background: 'transparent'
+        background: 'transparent',
+        foreColor: '#a0a0a0'
       },
       dataLabels: {
         enabled: false
@@ -703,9 +704,9 @@ function updateSalesChart(viewType = 'daily') {
         gradient: {
           shade: 'dark',
           type: 'vertical',
-          shadeIntensity: 0.3,
-          opacityFrom: 0.7,
-          opacityTo: 0.2,
+          shadeIntensity: 0.4,
+          opacityFrom: 0.5,
+          opacityTo: 0.1,
           stops: [0, 90, 100]
         }
       },
@@ -714,15 +715,24 @@ function updateSalesChart(viewType = 'daily') {
         text: `Sales Over Time (${viewType.charAt(0).toUpperCase() + viewType.slice(1)})`,
         align: 'left',
         style: {
-          color: '#e0e0e0'
+          color: '#e6e6e6',
+          fontSize: '14px',
+          fontWeight: '600'
         }
       },
       xaxis: {
         categories: formattedDates,
         labels: {
           style: {
-            colors: '#a0a0a0'
+            colors: '#a0a0a0',
+            fontSize: '11px'
           }
+        },
+        axisBorder: {
+          color: '#2a2a2a'
+        },
+        axisTicks: {
+          color: '#2a2a2a'
         }
       },
       yaxis: [
@@ -730,12 +740,14 @@ function updateSalesChart(viewType = 'daily') {
           title: {
             text: 'Sales ($)',
             style: {
-              color: '#a0a0a0'
+              color: '#a0a0a0',
+              fontSize: '11px'
             }
           },
           labels: {
             style: {
-              colors: '#a0a0a0'
+              colors: '#a0a0a0',
+              fontSize: '11px'
             },
             formatter: function(val) {
               return '$' + val.toFixed(0);
@@ -747,12 +759,14 @@ function updateSalesChart(viewType = 'daily') {
           title: {
             text: 'Orders',
             style: {
-              color: '#a0a0a0'
+              color: '#a0a0a0',
+              fontSize: '11px'
             }
           },
           labels: {
             style: {
-              colors: '#a0a0a0'
+              colors: '#a0a0a0',
+              fontSize: '11px'
             }
           }
         }
@@ -774,7 +788,8 @@ function updateSalesChart(viewType = 'daily') {
         }
       },
       grid: {
-        borderColor: '#3f3f3f'
+        borderColor: '#2a2a2a',
+        strokeDashArray: 3
       }
     };
 
@@ -844,18 +859,20 @@ function updateProductsChart(category = 'wheel') {
       ],
       chart: {
         type: 'bar',
-        height: 350,
+        height: 250,
         toolbar: {
           show: false
         },
         fontFamily: 'Segoe UI, sans-serif',
-        background: 'transparent'
+        background: 'transparent',
+        foreColor: '#a0a0a0'
       },
       plotOptions: {
         bar: {
           horizontal: false,
           columnWidth: '55%',
-          endingShape: 'rounded'
+          endingShape: 'rounded',
+          borderRadius: 2
         }
       },
       dataLabels: {
@@ -866,15 +883,24 @@ function updateProductsChart(category = 'wheel') {
         text: `Sales by ${category.charAt(0).toUpperCase() + category.slice(1)}`,
         align: 'left',
         style: {
-          color: '#e0e0e0'
+          color: '#e6e6e6',
+          fontSize: '14px',
+          fontWeight: '600'
         }
       },
       xaxis: {
         categories: categories,
         labels: {
           style: {
-            colors: '#a0a0a0'
+            colors: '#a0a0a0',
+            fontSize: '11px'
           }
+        },
+        axisBorder: {
+          color: '#2a2a2a'
+        },
+        axisTicks: {
+          color: '#2a2a2a'
         }
       },
       yaxis: [
@@ -968,9 +994,10 @@ function updateChannelChart() {
       series: data.map(item => item.value),
       chart: {
         type: 'pie',
-        height: 350,
+        height: 250,
         fontFamily: 'Segoe UI, sans-serif',
-        background: 'transparent'
+        background: 'transparent',
+        foreColor: '#a0a0a0'
       },
       labels: channels,
       colors: ['#00c8ff', '#1dd1a1', '#feca57', '#ff6b6b'],
@@ -978,10 +1005,14 @@ function updateChannelChart() {
         text: 'Sales by Channel',
         align: 'left',
         style: {
-          color: '#e0e0e0'
+          color: '#e6e6e6',
+          fontSize: '14px',
+          fontWeight: '600'
         }
       },
       legend: {
+        position: 'bottom',
+        fontSize: '12px',
         labels: {
           colors: '#a0a0a0'
         }
@@ -989,7 +1020,9 @@ function updateChannelChart() {
       dataLabels: {
         enabled: true,
         style: {
-          colors: ['#fff']
+          colors: ['#fff'],
+          fontSize: '11px',
+          fontWeight: '500'
         },
         formatter: function(val, { seriesIndex, w }) {
           // Calculate correct percentage based on total
