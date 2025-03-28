@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Wheel Sales Dashboard</title>
+  <link rel="stylesheet" href="dashboard.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
+</head>
+<body>
+  <div class="container">
+    <!-- Header -->
+    <div class="header">
+      <div class="logo">Wheel Sales Dashboard</div>
+      <button id="refreshData" class="btn btn-outline">
+        <i class="fas fa-sync-alt"></i> Refresh
+      </button>
+    </div>
+
+    <!-- Filters Section -->
+    <div class="filters-container">
+      <!-- Search Bar -->
+      <div class="filter-search-container">
+        <input type="text" id="searchInput" class="filter-search" placeholder="Search products, vendors...">
+        <i class="fas fa-search filter-search-icon"></i>
+      </div>
+
+      <!-- Filter Row 1 -->
+      <div class="filters-row">
+        <div class="filter-group">
+          <label for="startDate" class="filter-label">Start Date</label>
+          <input type="date" id="startDate" class="filter-input">
+        </div>
+        <div class="filter-group">
+          <label for="endDate" class="filter-label">End Date</label>
+          <input type="date" id="endDate" class="filter-input">
+        </div>
+        <div class="filter-group">
+          <label for="channelFilter" class="filter-label">Channel</label>
+          <select id="channelFilter" class="filter-select">
+            <option value="">All</option>
+          </select>
+        </div>
+        <div class="filter-group">
+          <label for="vendorFilter" class="filter-label">Vendor</label>
+          <select id="vendorFilter" class="filter-select">
+            <option value="">All</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Filter Row 2 -->
+      <div class="filters-row">
+        <div class="filter-group">
+          <label for="wheelFilter" class="filter-label">Wheel</label>
+          <select id="wheelFilter" class="filter-select">
+            <option value="">All</option>
+          </select>
+        </div>
+        <div class="filter-group">
+          <label for="sizeFilter" class="filter-label">Size</label>
+          <select id="sizeFilter" class="filter-select">
+            <option value="">All</option>
+          </select>
+        </div>
+        <div class="filter-group">
+          <label for="boltPatternFilter" class="filter-label">Bolt Pattern</label>
+          <select id="boltPatternFilter" class="filter-select">
+            <option value="">All</option>
+          </select>
+        </div>
+        <div class="filter-group">
+          <label for="finishFilter" class="filter-label">Finish</label>
+          <select id="finishFilter" class="filter-select">
+            <option value="">All</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Filter Buttons -->
+      <div class="filter-buttons">
+        <button id="applyFilters" class="btn btn-primary">Apply Filters</button>
+        <button id="resetFilters" class="btn btn-outline">Reset Filters</button>
+      </div>
+    </div>
+
+    <!-- Metrics Overview -->
+    <div class="metrics-row">
+      <div class="metric-card">
+        <div class="metric-title">Total Sales</div>
+        <div id="totalSales" class="metric-value">$0.00</div>
+        <div class="metric-change metric-up">
+          <i class="fas fa-arrow-up"></i> <span>0%</span>
+        </div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-title">Total Orders</div>
+        <div id="totalQuantity" class="metric-value">0</div>
+        <div class="metric-change metric-up">
+          <i class="fas fa-arrow-up"></i> <span>0%</span>
+        </div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-title">Average Price</div>
+        <div id="avgPrice" class="metric-value">$0.00</div>
+        <div class="metric-change metric-down">
+          <i class="fas fa-arrow-down"></i> <span>0%</span>
+        </div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-title">Unique Products</div>
+        <div id="uniqueProducts" class="metric-value">0</div>
+        <div class="metric-change metric-up">
+          <i class="fas fa-arrow-up"></i> <span>0%</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Forecast Cards -->
+    <div class="forecast-row">
+      <div class="forecast-card">
+        <div id="forecast30Days" class="forecast-value">0</div>
+        <div class="forecast-period">30-Day Order Forecast</div>
+      </div>
+      <div class="forecast-card">
+        <div id="forecast90Days" class="forecast-value">0</div>
+        <div class="forecast-period">90-Day Order Forecast</div>
+      </div>
+      <div class="forecast-card">
+        <div id="forecast180Days" class="forecast-value">0</div>
+        <div class="forecast-period">180-Day Order Forecast</div>
+      </div>
+      <div class="forecast-card">
+        <div id="forecast365Days" class="forecast-value">0</div>
+        <div class="forecast-period">1-Year Order Forecast</div>
+      </div>
+    </div>
+
+    <!-- Charts Row 1 -->
+    <div class="chart-row">
+      <!-- Sales Chart -->
+      <div id="salesChartCard" class="chart-card">
+        <div class="chart-header">
+          <div class="chart-title">Sales Over Time</div>
+          <div class="chart-options">
+            <button class="chart-option active" data-view="daily">Daily</button>
+            <button class="chart-option" data-view="weekly">Weekly</button>
+            <button class="chart-option" data-view="monthly">Monthly</button>
+          </div>
+        </div>
+        <div id="salesChart" class="chart-container"></div>
+      </div>
+
+      <!-- Channel Pie Chart -->
+      <div class="chart-card">
+        <div class="chart-header">
+          <div class="chart-title">Sales by Channel</div>
+        </div>
+        <div id="channelChart" class="pie-chart-container"></div>
+      </div>
+    </div>
+
+    <!-- Charts Row 2 -->
+    <div class="chart-row">
+      <!-- Products Chart -->
+      <div id="productsChartCard" class="chart-card">
+        <div class="chart-header">
+          <div class="chart-title">Sales by Product</div>
+          <div class="chart-options">
+            <button class="chart-option active" data-view="wheel">Wheel</button>
+            <button class="chart-option" data-view="vendor">Vendor</button>
+            <button class="chart-option" data-view="size">Size</button>
+            <button class="chart-option" data-view="boltPattern">Bolt Pattern</button>
+            <button class="chart-option" data-view="finish">Finish</button>
+          </div>
+        </div>
+        <div id="productsChart" class="chart-container"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Loading Overlay -->
+  <div id="loadingOverlay" class="loading-overlay">
+    <div class="spinner"></div>
+  </div>
+
+  <!-- Scripts -->
+  <script src="sample_data.js"></script>
+  <script src="dashboard.js"></script>
+</body>
+</html> 
