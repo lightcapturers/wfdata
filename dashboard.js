@@ -824,15 +824,38 @@ function updateChannelChart() {
 
 // Update forecast calculations
 function updateForecasts() {
-  // Calculate daily order rate based on filtered data
-  // Get unique dates in the data
-  const uniqueDates = new Set(filteredData.map(item => item.date)).size;
+  // Get the date range from the filters
+  const startDateInput = document.getElementById('startDate').value;
+  const endDateInput = document.getElementById('endDate').value;
   
-  // Total number of orders (each row is one order)
+  let startDate = startDateInput ? new Date(startDateInput) : null;
+  let endDate = endDateInput ? new Date(endDateInput) : null;
+  
+  // If no dates selected, try to determine them from the filtered data
+  if (!startDate || !endDate) {
+    if (filteredData.length > 0) {
+      const dates = filteredData.map(item => new Date(item.date));
+      startDate = new Date(Math.min(...dates));
+      endDate = new Date(Math.max(...dates));
+    } else {
+      // No data, return zero forecasts
+      document.getElementById('forecast30Days').textContent = '0';
+      document.getElementById('forecast90Days').textContent = '0';
+      document.getElementById('forecast180Days').textContent = '0';
+      document.getElementById('forecast365Days').textContent = '0';
+      return;
+    }
+  }
+  
+  // Calculate the number of days in the date range
+  const timeDiff = endDate.getTime() - startDate.getTime();
+  const daysDiff = Math.ceil(timeDiff / (1000 * 3600 * 24)) + 1; // +1 to include end date
+  
+  // Total number of orders
   const totalOrders = filteredData.length;
   
-  // Calculate daily order rate
-  const dailyOrderRate = uniqueDates > 0 ? totalOrders / uniqueDates : 0;
+  // Calculate daily order rate based on actual date range
+  const dailyOrderRate = totalOrders / daysDiff;
   
   // Calculate forecasts for different time periods
   const forecast30Days = Math.round(dailyOrderRate * 30);

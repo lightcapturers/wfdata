@@ -24,8 +24,31 @@ function csvToJson(csv) {
     // Skip empty lines
     if (lines[i].trim() === '') continue;
     
+    // Handle quoted fields that may contain commas
+    const currentLine = [];
+    let field = '';
+    let inQuotes = false;
+    
+    for (let char of lines[i]) {
+      if (char === '"' && field === '') {
+        inQuotes = true;
+      } else if (char === '"' && inQuotes) {
+        inQuotes = false;
+      } else if (char === ',' && !inQuotes) {
+        currentLine.push(field);
+        field = '';
+      } else {
+        field += char;
+      }
+    }
+    
+    // Add the last field
+    currentLine.push(field);
+    
+    // Skip if line doesn't have enough fields
+    if (currentLine.length < headers.length) continue;
+    
     const obj = {};
-    const currentLine = lines[i].split(',');
     
     // Create object with header keys
     for (let j = 0; j < headers.length; j++) {
@@ -47,26 +70,41 @@ function mapDataForDashboard(csvData) {
   return csvData.map((item, index) => {
     // Parse price from various formats
     let price = 0;
-    if (item.price || item.Price) {
-      const priceStr = (item.price || item.Price).toString().trim();
+    if (item.Price) {
+      const priceStr = item.Price.toString().trim();
       // Remove currency symbols and commas
-      const cleanPrice = priceStr.replace(/[$,]/g, '');
+      const cleanPrice = priceStr.replace(/[$,"]/g, '');
       price = parseFloat(cleanPrice) || 0;
+    }
+    
+    // Get bolt pattern from the dedicated column or extract from ID
+    let boltPattern = '';
+    if (item['Bolt Pattern']) {
+      boltPattern = item['Bolt Pattern'].trim();
+    } else if (item.ID && item.ID.includes('x')) {
+      // Try to extract bolt pattern from ID
+      const parts = item.ID.split('x');
+      if (parts.length > 1) {
+        const bpMatch = parts[1].match(/[456]\d*x\d+(\.\d+)?/);
+        if (bpMatch) {
+          boltPattern = bpMatch[0];
+        }
+      }
     }
     
     // Adjust these mappings based on your CSV column names
     return {
       id: index + 1,
-      date: item.date || item.Date || item.sale_date || '',
-      channel: item.channel || item.Channel || item.platform || '',
-      vendor: item.vendor || item.Vendor || item.brand || '',
-      wheel: item.wheel || item.Wheel || item.model || item.product_name || '',
-      size: item.size || item.Size || '',
-      boltPattern: item.bolt_pattern || item.boltPattern || item.BoltPattern || '',
-      finish: item.finish || item.Finish || item.color || '',
+      date: item.Date || '',
+      channel: item.Channel || '',
+      vendor: item.Vendor || '',
+      wheel: item.Wheel || '',
+      size: item.Size || '',
+      boltPattern: boltPattern,
+      finish: item.Finish || '',
       quantity: 1, // Always set quantity to 1 as requested
       price: price,
-      sku: item.sku || item.SKU || `SKU-${index + 1}`
+      sku: item.SKU || item.ID || `SKU-${index + 1}`
     };
   });
 }
@@ -128,9 +166,7 @@ function readCsvFileInBrowser() {
 
 /**
  * Node.js version for processing CSV files
- * Uncomment this section if using Node.js
  */
-/*
 const fs = require('fs');
 
 function processCsvFileNode(filePath) {
@@ -150,9 +186,8 @@ function processCsvFileNode(filePath) {
   console.log('Data successfully processed and saved to sample_data.js');
 }
 
-// Example usage:
-// processCsvFileNode('sales_data.csv');
-*/
+// Process the sales_data.csv file
+processCsvFileNode('sales_data.csv');
 
 // Browser usage:
 // Call readCsvFileInBrowser() in the browser console to process a CSV file 
