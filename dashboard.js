@@ -684,7 +684,7 @@ function updateSalesChart(viewType = 'daily') {
       ],
       chart: {
         type: 'area',
-        height: 250,
+        height: 320,
         toolbar: {
           show: false
         },
@@ -767,6 +767,9 @@ function updateSalesChart(viewType = 'daily') {
             style: {
               colors: '#a0a0a0',
               fontSize: '11px'
+            },
+            formatter: function(val) {
+              return Math.round(val);
             }
           }
         }
@@ -778,7 +781,7 @@ function updateSalesChart(viewType = 'daily') {
             if (seriesIndex === 0) {
               return '$' + val.toFixed(2);
             }
-            return val;
+            return Math.round(val);
           }
         }
       },
@@ -859,7 +862,7 @@ function updateProductsChart(category = 'wheel') {
       ],
       chart: {
         type: 'bar',
-        height: 250,
+        height: 320,
         toolbar: {
           show: false
         },
@@ -931,6 +934,9 @@ function updateProductsChart(category = 'wheel') {
           labels: {
             style: {
               colors: '#a0a0a0'
+            },
+            formatter: function(val) {
+              return Math.round(val);
             }
           }
         }
@@ -942,7 +948,7 @@ function updateProductsChart(category = 'wheel') {
             if (seriesIndex === 0) {
               return '$' + val.toFixed(2);
             }
-            return val;
+            return Math.round(val);
           }
         }
       },
@@ -952,7 +958,8 @@ function updateProductsChart(category = 'wheel') {
         }
       },
       grid: {
-        borderColor: '#3f3f3f'
+        borderColor: '#2a2a2a',
+        strokeDashArray: 3
       }
     };
 
