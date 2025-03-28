@@ -185,6 +185,18 @@ body {
   margin-bottom: 20px;
 }
 
+/* Add rules for the chart proportions */
+#salesChartCard {
+  flex: 3; /* 75% width */
+  min-width: 600px;
+}
+
+/* Channel pie chart card */
+.chart-row > .chart-card:nth-child(2) {
+  flex: 1; /* 25% width */
+  min-width: 250px;
+}
+
 .chart-card {
   flex: 1;
   min-width: 400px;

@@ -249,7 +249,7 @@ function updateCharts() {
   updateChannelChart();
 }
 
-// Add this function to update the top products list
+// Update top products
 function updateTopProducts() {
   const topProductsList = document.getElementById('topProductsList');
   
@@ -308,6 +308,96 @@ function updateTopProducts() {
         </div>
       </div>
       <div class="product-sales">$${product.sales.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</div>
+    `;
+    
+    // Add click event to filter dashboard
+    li.addEventListener('click', function() {
+      // Set filter dropdowns
+      document.getElementById('channelFilter').value = product.channel;
+      document.getElementById('vendorFilter').value = product.vendor;
+      document.getElementById('wheelFilter').value = product.wheel;
+      document.getElementById('sizeFilter').value = product.size;
+      document.getElementById('boltPatternFilter').value = product.boltPattern;
+      document.getElementById('finishFilter').value = product.finish;
+      
+      // Apply filters
+      showLoading();
+      setTimeout(function() {
+        updateDashboard();
+        hideLoading();
+      }, 500);
+    });
+    
+    topProductsList.appendChild(li);
+  });
+  
+  // Show "No data" message if no products
+  if (topProducts.length === 0) {
+    const li = document.createElement('li');
+    li.textContent = 'No product data available';
+    topProductsList.appendChild(li);
+  }
+}
+
+// Update top products by orders
+function updateTopProductsByOrders() {
+  const topProductsList = document.getElementById('topProductsByOrdersList');
+  
+  // Clear the list
+  topProductsList.innerHTML = '';
+  
+  // Group data by product title
+  const productOrders = {};
+  
+  filteredData.forEach(item => {
+    const productTitle = item.productTitle;
+    
+    if (!productTitle) return; // Skip items without product title
+    
+    if (!productOrders[productTitle]) {
+      productOrders[productTitle] = {
+        sales: 0,
+        count: 0,
+        vendor: item.vendor,
+        wheel: item.wheel,
+        size: item.size,
+        boltPattern: item.boltPattern,
+        finish: item.finish,
+        channel: item.channel
+      };
+    }
+    
+    productOrders[productTitle].sales += item.price;
+    productOrders[productTitle].count += 1;
+  });
+  
+  // Convert to array and sort by order count
+  const topProducts = Object.entries(productOrders)
+    .map(([title, data]) => ({
+      title: title,
+      sales: data.sales,
+      count: data.count,
+      vendor: data.vendor,
+      wheel: data.wheel,
+      size: data.size,
+      boltPattern: data.boltPattern,
+      finish: data.finish,
+      channel: data.channel
+    }))
+    .sort((a, b) => b.count - a.count)
+    .slice(0, 10); // Get top 10
+  
+  // Create list items
+  topProducts.forEach(product => {
+    const li = document.createElement('li');
+    li.innerHTML = `
+      <div class="product-info">
+        <div class="product-title">${product.title}</div>
+        <div class="product-details">
+          ${product.vendor} | ${product.wheel} | ${product.size}
+        </div>
+      </div>
+      <div class="product-sales">${product.count} orders</div>
     `;
     
     // Add click event to filter dashboard
@@ -404,6 +494,9 @@ function updateDashboard() {
   
   // Update top products
   updateTopProducts();
+  
+  // Update top products by orders
+  updateTopProductsByOrders();
 }
 
 // Update metric cards with calculated metrics
