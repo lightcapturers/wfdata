@@ -17,6 +17,13 @@ function initializeDashboard() {
   // Clone the initial data
   filteredData = [...sampleData];
   
+  // Add productTitle field to data if it doesn't exist (for backward compatibility)
+  sampleData.forEach(item => {
+    if (!item.hasOwnProperty('productTitle')) {
+      item.productTitle = `${item.wheel}${item.size}${item.boltPattern}${item.finish}`;
+    }
+  });
+  
   // Initialize date pickers with sensible defaults
   const today = new Date();
   const oneMonthAgo = new Date();
@@ -235,6 +242,103 @@ function resetFilters() {
   initializeFilters();
 }
 
+// Update all charts
+function updateCharts() {
+  updateSalesChart('daily');
+  updateProductsChart('wheel');
+  updateChannelChart();
+}
+
+// Add this function to update the top products list
+function updateTopProducts() {
+  const topProductsList = document.getElementById('topProductsList');
+  
+  // Clear the list
+  topProductsList.innerHTML = '';
+  
+  // Group data by product title
+  const productSales = {};
+  
+  filteredData.forEach(item => {
+    const productTitle = item.productTitle;
+    
+    if (!productTitle) return; // Skip items without product title
+    
+    if (!productSales[productTitle]) {
+      productSales[productTitle] = {
+        sales: 0,
+        count: 0,
+        vendor: item.vendor,
+        wheel: item.wheel,
+        size: item.size,
+        boltPattern: item.boltPattern,
+        finish: item.finish,
+        channel: item.channel
+      };
+    }
+    
+    productSales[productTitle].sales += item.price;
+    productSales[productTitle].count += 1;
+  });
+  
+  // Convert to array and sort by sales
+  const topProducts = Object.entries(productSales)
+    .map(([title, data]) => ({
+      title: title,
+      sales: data.sales,
+      count: data.count,
+      vendor: data.vendor,
+      wheel: data.wheel,
+      size: data.size,
+      boltPattern: data.boltPattern,
+      finish: data.finish,
+      channel: data.channel
+    }))
+    .sort((a, b) => b.sales - a.sales)
+    .slice(0, 10); // Get top 10
+  
+  // Create list items
+  topProducts.forEach(product => {
+    const li = document.createElement('li');
+    li.innerHTML = `
+      <div class="product-info">
+        <div class="product-title">${product.title}</div>
+        <div class="product-details">
+          ${product.count} orders | ${product.vendor} | ${product.wheel} | ${product.size}
+        </div>
+      </div>
+      <div class="product-sales">$${product.sales.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</div>
+    `;
+    
+    // Add click event to filter dashboard
+    li.addEventListener('click', function() {
+      // Set filter dropdowns
+      document.getElementById('channelFilter').value = product.channel;
+      document.getElementById('vendorFilter').value = product.vendor;
+      document.getElementById('wheelFilter').value = product.wheel;
+      document.getElementById('sizeFilter').value = product.size;
+      document.getElementById('boltPatternFilter').value = product.boltPattern;
+      document.getElementById('finishFilter').value = product.finish;
+      
+      // Apply filters
+      showLoading();
+      setTimeout(function() {
+        updateDashboard();
+        hideLoading();
+      }, 500);
+    });
+    
+    topProductsList.appendChild(li);
+  });
+  
+  // Show "No data" message if no products
+  if (topProducts.length === 0) {
+    const li = document.createElement('li');
+    li.textContent = 'No product data available';
+    topProductsList.appendChild(li);
+  }
+}
+
 // Apply filters and update the dashboard
 function updateDashboard() {
   // Get filter values
@@ -279,7 +383,8 @@ function updateDashboard() {
         item.size,
         item.boltPattern,
         item.finish,
-        item.sku
+        item.sku,
+        item.productTitle || '' // Include productTitle in search
       ].map(field => field.toLowerCase());
       
       return searchFields.some(field => field.includes(searchTerm));
@@ -296,6 +401,9 @@ function updateDashboard() {
   
   // Update forecasts
   updateForecasts();
+  
+  // Update top products
+  updateTopProducts();
 }
 
 // Update metric cards with calculated metrics
@@ -386,13 +494,6 @@ function updateMetricChange(elementId, changePercent) {
     changeElement.className = 'metric-change';
     iconElement.className = 'fas fa-minus';
   }
-}
-
-// Update all charts
-function updateCharts() {
-  updateSalesChart('daily');
-  updateProductsChart('wheel');
-  updateChannelChart();
 }
 
 // Update sales chart based on selected view

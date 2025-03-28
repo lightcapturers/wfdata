@@ -104,7 +104,8 @@ function mapDataForDashboard(csvData) {
       finish: item.Finish || '',
       quantity: 1, // Always set quantity to 1 as requested
       price: price,
-      sku: item.SKU || item.ID || `SKU-${index + 1}`
+      sku: item.SKU || item.ID || `SKU-${index + 1}`,
+      productTitle: item.ID || '' // Add the ID as productTitle
     };
   });
 }
