@@ -1,0 +1,13 @@
+{
+  "name": "dashboard-data-updater",
+  "version": "1.0.0",
+  "description": "Fetch data from Google Sheets for dashboard",
+  "main": "update_data.js",
+  "scripts": {
+    "update": "node update_data.js"
+  },
+  "dependencies": {
+    "googleapis": "^118.0.0",
+    "dotenv": "^16.0.3"
+  }
+} 

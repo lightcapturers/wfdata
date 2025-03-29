@@ -385,4 +385,68 @@ This dashboard works best on modern browsers:
 ## Technical Dependencies
 
 - **ApexCharts.js**: For chart visualization
-- **Font Awesome**: For icons and UI elements 
+- **Font Awesome**: For icons and UI elements
+
+# Dashboard Data Update Tool
+
+This tool automatically fetches data from Google Sheets and updates the dashboard's JSON data file.
+
+## Setup
+
+1. Install dependencies:
+```
+npm install
+```
+
+2. Place your Google Sheets API service account credentials in a file named `credentials.json` in the same directory.
+
+3. Configure the tool using one of these methods:
+
+   **Method 1: Environment Variables**
+   - Copy `.env.example` to `.env`
+   - Update the values in the `.env` file:
+     ```
+     SPREADSHEET_ID=your_google_sheet_id_here
+     SHEET_NAME=your_sheet_name_here
+     OUTPUT_FILE=sampleData.json
+     ```
+
+   **Method 2: Direct Edit**
+   - Open `update_data.js` and update these variables:
+     ```javascript
+     const SPREADSHEET_ID = process.env.SPREADSHEET_ID || 'YOUR_SPREADSHEET_ID';
+     const SHEET_NAME = process.env.SHEET_NAME || 'YOUR_SHEET_NAME';
+     ```
+
+## Usage
+
+Run the update script with:
+```
+npm run update
+```
+
+## Automation
+
+### Option 1: Schedule with cron (Linux/Mac)
+Add a cron job to run the script automatically:
+
+```
+# Run every hour
+0 * * * * cd /path/to/dashboard && npm run update
+```
+
+### Option 2: Schedule with Task Scheduler (Windows)
+Create a batch file `update.bat`:
+```batch
+cd C:\path\to\dashboard
+npm run update
+```
+
+Then schedule this batch file with Windows Task Scheduler.
+
+## Notes
+
+- Make sure your Google Sheet has the same column headers as your current JSON data
+- The service account must have access to the Google Sheet
+- The first row of the sheet should contain headers that match your JSON property names
+- The script will generate `productTitle` if that column doesn't exist in your sheet 
