@@ -10,6 +10,7 @@ let forecastData = {};
 // Dashboard initialization
 document.addEventListener('DOMContentLoaded', function() {
   initializeDashboard();
+  updateLastUpdatedTime();
 });
 
 // Initialize the dashboard
@@ -40,6 +41,34 @@ function initializeDashboard() {
   
   // Set up event listeners
   setupEventListeners();
+}
+
+// Update the last updated time display
+function updateLastUpdatedTime() {
+  const lastUpdatedElement = document.getElementById('lastUpdated');
+  if (lastUpdatedElement) {
+    // Get the last modified time of the script
+    const scriptElem = document.querySelector('script[src*="sample_data.js"]');
+    if (scriptElem) {
+      // For GitHub Pages, we can use the updated timestamp from repository
+      fetch(scriptElem.src, { method: 'HEAD' })
+        .then(response => {
+          const lastModified = response.headers.get('last-modified');
+          if (lastModified) {
+            const date = new Date(lastModified);
+            lastUpdatedElement.textContent = `Last updated: ${date.toLocaleString()}`;
+          } else {
+            lastUpdatedElement.textContent = `Last updated: Unknown`;
+          }
+        })
+        .catch(error => {
+          console.error('Error fetching script modification time:', error);
+          lastUpdatedElement.textContent = `Last updated: Unknown`;
+        });
+    } else {
+      lastUpdatedElement.textContent = `Last updated: Unknown`;
+    }
+  }
 }
 
 // Initialize filter dropdowns with unique values from data
@@ -110,9 +139,16 @@ function setupEventListeners() {
   document.getElementById('refreshData').addEventListener('click', function() {
     showLoading();
     setTimeout(function() {
+      // Reload data from the current script
+      filteredData = [...sampleData];
+      
+      // Update last updated time
+      updateLastUpdatedTime();
+      
+      // Update dashboard
       updateDashboard();
       hideLoading();
-    }, 500); // Simulate loading time
+    }, 500);
   });
   
   // Channel filter change - update dependent filters
@@ -1138,4 +1174,49 @@ function showLoading() {
 // Hide loading overlay
 function hideLoading() {
   document.getElementById('loadingOverlay').classList.remove('active');
+}
+
+// Show notification message
+function showNotification(message, type = 'info') {
+  // Create notification element if it doesn't exist
+  let notification = document.getElementById('notification');
+  
+  if (!notification) {
+    notification = document.createElement('div');
+    notification.id = 'notification';
+    document.body.appendChild(notification);
+    
+    // Add styles if not in CSS
+    notification.style.position = 'fixed';
+    notification.style.top = '20px';
+    notification.style.right = '20px';
+    notification.style.padding = '12px 24px';
+    notification.style.borderRadius = '4px';
+    notification.style.color = 'white';
+    notification.style.boxShadow = '0 4px 8px rgba(0,0,0,0.2)';
+    notification.style.zIndex = '9999';
+    notification.style.transition = 'all 0.3s ease';
+    notification.style.opacity = '0';
+    notification.style.transform = 'translateY(-20px)';
+  }
+  
+  // Set type-specific styles
+  if (type === 'success') {
+    notification.style.backgroundColor = '#1dd1a1';
+  } else if (type === 'error') {
+    notification.style.backgroundColor = '#ff6b6b';
+  } else {
+    notification.style.backgroundColor = '#00c8ff';
+  }
+  
+  // Set content and show
+  notification.textContent = message;
+  notification.style.opacity = '1';
+  notification.style.transform = 'translateY(0)';
+  
+  // Auto-hide after 3 seconds
+  setTimeout(() => {
+    notification.style.opacity = '0';
+    notification.style.transform = 'translateY(-20px)';
+  }, 3000);
 } 

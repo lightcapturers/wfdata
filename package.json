@@ -4,10 +4,13 @@
   "description": "Fetch data from Google Sheets for dashboard",
   "main": "update_data.js",
   "scripts": {
-    "update": "node update_data.js"
+    "update": "node update_data.js",
+    "start": "node update_api.js"
   },
   "dependencies": {
     "googleapis": "^118.0.0",
-    "dotenv": "^16.0.3"
+    "dotenv": "^16.0.3",
+    "express": "^4.18.2",
+    "cors": "^2.8.5"
   }
 } 

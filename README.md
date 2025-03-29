@@ -391,7 +391,40 @@ This dashboard works best on modern browsers:
 
 This tool automatically fetches data from Google Sheets and updates the dashboard's JSON data file.
 
+## GitHub Pages Setup
+
+This dashboard is designed to work with GitHub Pages, with automatic data updates via GitHub Actions.
+
+### Automatic Updates
+
+The dashboard data is automatically updated from Google Sheets via a GitHub Actions workflow:
+
+- Updates run every 6 hours automatically
+- You can trigger a manual update through the GitHub Actions page
+- Click the "Update Data" button in the dashboard to go to the GitHub Actions page
+
+### How It Works
+
+1. The GitHub Action workflow:
+   - Connects to Google Sheets using stored credentials
+   - Fetches the latest data
+   - Updates sample_data.js in the repository
+   - Commits and pushes the changes
+
+2. GitHub Pages serves the updated static files
+3. When users access the dashboard, they see the latest data
+
 ## Setup
+
+1. Store these secrets in your GitHub repository:
+   - `GOOGLE_CREDENTIALS`: Your Google Sheets service account credentials (entire JSON file contents)
+   - `SPREADSHEET_ID`: Your Google Sheet ID
+   - `SHEET_NAME`: Your sheet name
+
+2. Enable GitHub Pages for your repository
+3. Make sure the GitHub Actions workflow has write permissions to your repository
+
+## Local Development
 
 1. Install dependencies:
 ```
@@ -400,49 +433,14 @@ npm install
 
 2. Place your Google Sheets API service account credentials in a file named `credentials.json` in the same directory.
 
-3. Configure the tool using one of these methods:
-
-   **Method 1: Environment Variables**
+3. Configure the tool using environment variables:
    - Copy `.env.example` to `.env`
-   - Update the values in the `.env` file:
-     ```
-     SPREADSHEET_ID=your_google_sheet_id_here
-     SHEET_NAME=your_sheet_name_here
-     OUTPUT_FILE=sampleData.json
-     ```
+   - Update the values in the `.env` file
 
-   **Method 2: Direct Edit**
-   - Open `update_data.js` and update these variables:
-     ```javascript
-     const SPREADSHEET_ID = process.env.SPREADSHEET_ID || 'YOUR_SPREADSHEET_ID';
-     const SHEET_NAME = process.env.SHEET_NAME || 'YOUR_SHEET_NAME';
-     ```
-
-## Usage
-
-Run the update script with:
+4. Run the update script locally:
 ```
 npm run update
 ```
-
-## Automation
-
-### Option 1: Schedule with cron (Linux/Mac)
-Add a cron job to run the script automatically:
-
-```
-# Run every hour
-0 * * * * cd /path/to/dashboard && npm run update
-```
-
-### Option 2: Schedule with Task Scheduler (Windows)
-Create a batch file `update.bat`:
-```batch
-cd C:\path\to\dashboard
-npm run update
-```
-
-Then schedule this batch file with Windows Task Scheduler.
 
 ## Notes
 

@@ -118,12 +118,23 @@ body {
 }
 
 .btn-primary {
-  background-color: var(--accent);
-  color: #fff;
+  background-color: #00c8ff;
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 4px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  transition: background-color 0.2s;
 }
 
 .btn-primary:hover {
-  background-color: var(--accent-dark);
+  background-color: #00a8e0;
 }
 
 .btn-outline {
@@ -421,4 +432,53 @@ body {
   font-weight: 500;
   font-size: 14px;
   color: #00c8ff;
+}
+
+/* Add these styles at the end of your CSS file */
+
+/* Loading message */
+.loading-message {
+  color: white;
+  font-size: 16px;
+  margin-top: 15px;
+  text-align: center;
+  animation: fade-in 0.5s ease;
+}
+
+/* Notification */
+#notification {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  padding: 12px 24px;
+  border-radius: 4px;
+  color: white;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+  z-index: 9999;
+  transition: all 0.3s ease;
+  opacity: 0;
+  transform: translateY(-20px);
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* Add these styles near your header styles */
+
+.header-right {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.last-updated {
+  color: #a0a0a0;
+  font-size: 13px;
+  margin-right: 8px;
 } 
