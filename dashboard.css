@@ -695,8 +695,8 @@ body {
 .filter-pill {
   display: flex;
   align-items: center;
-  background-color: #1c1c1c;
-  border: 1px solid #2a2a2a;
+  background-color: rgba(38, 130, 142, 0.2);
+  border: 1px solid rgba(38, 130, 142, 0.5);
   border-radius: 16px;
   padding: 5px 12px;
   font-size: 13px;
@@ -910,5 +910,135 @@ body {
 }
 
 .multi-select-dropdown::-webkit-scrollbar-thumb:hover {
+  background: #4a4a4a;
+}
+
+/* Product filter styles */
+.product-filter-section {
+  margin-bottom: 20px;
+}
+
+.product-filter-group {
+  flex: 1;
+  min-width: 200px;
+  margin-bottom: 15px;
+}
+
+.product-filter-label {
+  display: block;
+  margin-bottom: 8px;
+  color: #e6e6e6;
+  font-size: 14px;
+}
+
+.product-search-container {
+  position: relative;
+  margin-top: 10px;
+}
+
+.product-list-section {
+  margin-top: 20px;
+  margin-bottom: 20px;
+}
+
+.product-list-section h3 {
+  margin-top: 0;
+  font-size: 16px;
+  color: #e6e6e6;
+  margin-bottom: 15px;
+}
+
+.product-list-container {
+  max-height: 300px;
+  overflow-y: auto;
+  border: 1px solid #2a2a2a;
+  border-radius: 4px;
+  background-color: #1a1a1a;
+}
+
+.product-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.product-table th {
+  background-color: #2a2a2a;
+  padding: 10px 15px;
+  text-align: left;
+  font-size: 13px;
+  color: #a0a0a0;
+  position: sticky;
+  top: 0;
+  z-index: 1;
+}
+
+.product-table tbody tr {
+  border-bottom: 1px solid #2a2a2a;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.product-table tbody tr:hover {
+  background-color: #252525;
+}
+
+.product-table tbody tr.selected {
+  background-color: rgba(0, 200, 255, 0.1);
+}
+
+.product-table td {
+  padding: 10px 15px;
+  font-size: 14px;
+}
+
+.product-title-cell {
+  font-weight: 500;
+  color: #e6e6e6;
+}
+
+.product-vendor-cell {
+  color: #a0a0a0;
+  font-size: 13px;
+}
+
+.product-info-cell {
+  color: #a0a0a0;
+  font-size: 13px;
+}
+
+.selected-products-section {
+  margin-top: 20px;
+  border-top: 1px solid #2a2a2a;
+  padding-top: 20px;
+}
+
+.selected-products-section h3 {
+  margin-top: 0;
+  font-size: 16px;
+  color: #e6e6e6;
+  margin-bottom: 15px;
+}
+
+.selected-products {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+/* Scrollbar styling for product list */
+.product-list-container::-webkit-scrollbar {
+  width: 8px;
+}
+
+.product-list-container::-webkit-scrollbar-track {
+  background: #1a1a1a;
+}
+
+.product-list-container::-webkit-scrollbar-thumb {
+  background: #3a3a3a;
+  border-radius: 4px;
+}
+
+.product-list-container::-webkit-scrollbar-thumb:hover {
   background: #4a4a4a;
 } 

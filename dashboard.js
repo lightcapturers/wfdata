@@ -22,6 +22,9 @@ let selectedFilters = {
   channel: []
 };
 
+// Add this variable for custom view by product
+let selectedProducts = [];
+
 // Dashboard initialization
 document.addEventListener('DOMContentLoaded', function() {
   initializeDashboard();
@@ -49,8 +52,11 @@ function initializeDashboard() {
   // Initialize date range selector
   initializeDateRangeSelector();
   
-  // Initialize custom view functionality
-  initializeCustomView();
+  // Initialize custom view by category functionality
+  initializeCustomViewByCategory();
+  
+  // Initialize custom view by product functionality
+  initializeCustomViewByProduct();
   
   // Apply initial data processing
   updateDashboard();
@@ -493,13 +499,13 @@ function populateFilterDropdown(elementId, options) {
   });
 }
 
-// Initialize custom view functionality
-function initializeCustomView() {
-  const modal = document.getElementById('customViewModal');
-  const customViewBtn = document.getElementById('customViewBtn');
-  const closeModalBtn = document.querySelector('.close-modal');
-  const applyCustomViewBtn = document.getElementById('applyCustomView');
-  const cancelCustomViewBtn = document.getElementById('cancelCustomView');
+// Initialize custom view by category functionality
+function initializeCustomViewByCategory() {
+  const modal = document.getElementById('customViewCategoryModal');
+  const customViewBtn = document.getElementById('customViewCategoryBtn');
+  const closeModalBtn = modal.querySelector('.close-modal');
+  const applyCustomViewBtn = document.getElementById('applyCustomViewCategory');
+  const cancelCustomViewBtn = document.getElementById('cancelCustomViewCategory');
   
   // Populate multi-select dropdowns
   populateMultiSelectDropdown('wheelDropdown', 'wheel');
@@ -536,6 +542,9 @@ function initializeCustomView() {
     modal.style.display = 'none';
     document.body.style.overflow = 'auto';
     
+    // Reset selected products when switching to category view
+    selectedProducts = [];
+    
     // Check if any filters are selected
     const hasActiveFilters = Object.values(selectedFilters).some(arr => arr.length > 0);
     
@@ -568,6 +577,9 @@ function initializeCustomView() {
     Object.keys(selectedFilters).forEach(key => {
       selectedFilters[key] = [];
     });
+    
+    // Clear selected products
+    selectedProducts = [];
     
     // Hide the active filters container
     document.getElementById('activeFiltersContainer').style.display = 'none';
@@ -829,7 +841,7 @@ function formatFilterType(filterType) {
   }
 }
 
-// Modify the updateDashboard function to handle custom filters
+// Modify the updateDashboard function to handle selected products
 function updateDashboard() {
   // Get regular filter values
   const channelFilter = document.getElementById('channelFilter').value;
@@ -854,6 +866,11 @@ function updateDashboard() {
       const endDateAdjusted = new Date(end);
       endDateAdjusted.setDate(endDateAdjusted.getDate() + 1); // Include the end date
       if (itemDate >= endDateAdjusted) return false;
+    }
+    
+    // Check if we have selected products
+    if (selectedProducts.length > 0) {
+      return selectedProducts.includes(item.productTitle);
     }
     
     // Dropdown filters (only apply if custom filters for that type are not active)
@@ -1781,6 +1798,9 @@ function resetFilters() {
   // Reset search
   document.getElementById('searchInput').value = '';
   
+  // Clear selected products
+  selectedProducts = [];
+  
   // Reinitialize filter dropdowns
   initializeFilters();
 }
@@ -1970,4 +1990,320 @@ function updateTopProductsByOrders() {
     li.textContent = 'No product data available';
     topProductsList.appendChild(li);
   }
+}
+
+// Initialize custom view by product functionality
+function initializeCustomViewByProduct() {
+  const modal = document.getElementById('customViewProductModal');
+  const customViewBtn = document.getElementById('customViewProductBtn');
+  const closeModalBtn = modal.querySelector('.close-modal');
+  const applyCustomViewBtn = document.getElementById('applyCustomViewProduct');
+  const cancelCustomViewBtn = document.getElementById('cancelCustomViewProduct');
+  
+  // Populate filter dropdowns
+  populateProductFilterDropdowns();
+  
+  // Open modal when Custom View by Product button is clicked
+  customViewBtn.addEventListener('click', function() {
+    modal.style.display = 'block';
+    document.body.style.overflow = 'hidden'; // Prevent scrolling behind modal
+    
+    // Refresh the product list
+    updateProductList();
+    updateSelectedProductsDisplay();
+  });
+  
+  // Close modal on X button click
+  closeModalBtn.addEventListener('click', function() {
+    modal.style.display = 'none';
+    document.body.style.overflow = 'auto';
+  });
+  
+  // Close modal when clicking outside the modal content
+  window.addEventListener('click', function(e) {
+    if (e.target === modal) {
+      modal.style.display = 'none';
+      document.body.style.overflow = 'auto';
+    }
+  });
+  
+  // Apply custom view by product
+  applyCustomViewBtn.addEventListener('click', function() {
+    // Apply the product filters
+    modal.style.display = 'none';
+    document.body.style.overflow = 'auto';
+    
+    // Reset category filters when using product view
+    Object.keys(selectedFilters).forEach(key => {
+      selectedFilters[key] = [];
+    });
+    
+    // Check if any products are selected
+    const hasActiveProducts = selectedProducts.length > 0;
+    
+    // Show/hide the active filters container
+    document.getElementById('activeFiltersContainer').style.display = hasActiveProducts ? 'flex' : 'none';
+    
+    // Update the active filters display with selected products
+    updateActiveProductFiltersDisplay();
+    
+    // Update the dashboard with the selected products
+    showLoading();
+    setTimeout(function() {
+      updateDashboard();
+      hideLoading();
+    }, 500);
+  });
+  
+  // Cancel custom view
+  cancelCustomViewBtn.addEventListener('click', function() {
+    modal.style.display = 'none';
+    document.body.style.overflow = 'auto';
+  });
+  
+  // Set up filter change events
+  document.getElementById('productFilterVendor').addEventListener('change', updateProductList);
+  document.getElementById('productFilterWheel').addEventListener('change', updateProductList);
+  document.getElementById('productFilterBoltPattern').addEventListener('change', updateProductList);
+  document.getElementById('productFilterFinish').addEventListener('change', updateProductList);
+  
+  // Set up product search input
+  document.getElementById('productSearchInput').addEventListener('input', function() {
+    updateProductList();
+  });
+}
+
+// Populate product filter dropdowns
+function populateProductFilterDropdowns() {
+  // Vendor filter
+  const vendors = [...new Set(sampleData.map(item => item.vendor))].sort();
+  populateProductFilter('productFilterVendor', vendors);
+  
+  // Wheel filter
+  const wheels = [...new Set(sampleData.map(item => item.wheel))].sort();
+  populateProductFilter('productFilterWheel', wheels);
+  
+  // Bolt pattern filter
+  const boltPatterns = [...new Set(sampleData.map(item => item.boltPattern))].sort();
+  populateProductFilter('productFilterBoltPattern', boltPatterns);
+  
+  // Finish filter
+  const finishes = [...new Set(sampleData.map(item => item.finish))].sort();
+  populateProductFilter('productFilterFinish', finishes);
+}
+
+// Populate a product filter dropdown
+function populateProductFilter(elementId, options) {
+  const dropdown = document.getElementById(elementId);
+  
+  // Clear existing options except the first one
+  const firstOption = dropdown.querySelector('option:first-child');
+  dropdown.innerHTML = '';
+  dropdown.appendChild(firstOption);
+  
+  // Add options
+  options.forEach(option => {
+    const optionElement = document.createElement('option');
+    optionElement.value = option;
+    optionElement.textContent = option;
+    dropdown.appendChild(optionElement);
+  });
+}
+
+// Update product list based on filters
+function updateProductList() {
+  const vendorFilter = document.getElementById('productFilterVendor').value;
+  const wheelFilter = document.getElementById('productFilterWheel').value;
+  const boltPatternFilter = document.getElementById('productFilterBoltPattern').value;
+  const finishFilter = document.getElementById('productFilterFinish').value;
+  const searchTerm = document.getElementById('productSearchInput').value.toLowerCase();
+  
+  // Get unique product titles with filtered attributes
+  const productTitles = new Set();
+  const productDetails = {};
+  
+  sampleData.forEach(item => {
+    if (vendorFilter && item.vendor !== vendorFilter) return;
+    if (wheelFilter && item.wheel !== wheelFilter) return;
+    if (boltPatternFilter && item.boltPattern !== boltPatternFilter) return;
+    if (finishFilter && item.finish !== finishFilter) return;
+    
+    const productTitle = item.productTitle;
+    
+    // Skip if product doesn't match search term
+    if (searchTerm && !productTitle.toLowerCase().includes(searchTerm)) return;
+    
+    productTitles.add(productTitle);
+    
+    // Store product details for display
+    if (!productDetails[productTitle]) {
+      productDetails[productTitle] = {
+        vendor: item.vendor,
+        wheel: item.wheel,
+        size: item.size,
+        boltPattern: item.boltPattern,
+        finish: item.finish
+      };
+    }
+  });
+  
+  // Sort product titles alphabetically
+  const sortedProductTitles = Array.from(productTitles).sort();
+  
+  // Render product list
+  const productList = document.getElementById('productList');
+  productList.innerHTML = '';
+  
+  if (sortedProductTitles.length === 0) {
+    const noProductsRow = document.createElement('tr');
+    noProductsRow.innerHTML = '<td colspan="3" style="text-align: center; padding: 20px;">No products match the selected filters</td>';
+    productList.appendChild(noProductsRow);
+    return;
+  }
+  
+  sortedProductTitles.forEach(title => {
+    const details = productDetails[title];
+    const row = document.createElement('tr');
+    
+    // Add selected class if this product is in the selected products list
+    if (selectedProducts.includes(title)) {
+      row.classList.add('selected');
+    }
+    
+    row.innerHTML = `
+      <td class="product-title-cell">${title}</td>
+      <td class="product-vendor-cell">${details.vendor}</td>
+      <td class="product-info-cell">${details.size} | ${details.boltPattern} | ${details.finish}</td>
+    `;
+    
+    // Add click event to toggle selection
+    row.addEventListener('click', function() {
+      toggleProductSelection(title, row);
+    });
+    
+    productList.appendChild(row);
+  });
+}
+
+// Toggle product selection
+function toggleProductSelection(productTitle, row) {
+  const index = selectedProducts.indexOf(productTitle);
+  
+  if (index === -1) {
+    // Add to selected products
+    selectedProducts.push(productTitle);
+    row.classList.add('selected');
+  } else {
+    // Remove from selected products
+    selectedProducts.splice(index, 1);
+    row.classList.remove('selected');
+  }
+  
+  // Update selected products display
+  updateSelectedProductsDisplay();
+}
+
+// Update the display of selected products in the modal
+function updateSelectedProductsDisplay() {
+  const selectedProductsContainer = document.getElementById('selectedProducts');
+  selectedProductsContainer.innerHTML = '';
+  
+  // Create pill elements for each selected product
+  selectedProducts.forEach(productTitle => {
+    const pill = document.createElement('div');
+    pill.className = 'filter-pill';
+    pill.innerHTML = `
+      <span class="filter-pill-text">${productTitle}</span>
+      <span class="filter-pill-remove" data-product="${productTitle}">×</span>
+    `;
+    
+    // Add click event to remove button
+    pill.querySelector('.filter-pill-remove').addEventListener('click', function() {
+      const product = this.dataset.product;
+      
+      // Remove from selected products
+      const index = selectedProducts.indexOf(product);
+      if (index !== -1) {
+        selectedProducts.splice(index, 1);
+      }
+      
+      // Remove pill from display
+      pill.remove();
+      
+      // Update product list to reflect deselection
+      const productRows = document.querySelectorAll('#productList tr');
+      productRows.forEach(row => {
+        const titleCell = row.querySelector('.product-title-cell');
+        if (titleCell && titleCell.textContent === product) {
+          row.classList.remove('selected');
+        }
+      });
+      
+      // Show message if no products selected
+      if (selectedProducts.length === 0) {
+        showNoProductsSelectedMessage();
+      }
+    });
+    
+    selectedProductsContainer.appendChild(pill);
+  });
+  
+  // Show a message if no products are selected
+  if (selectedProducts.length === 0) {
+    showNoProductsSelectedMessage();
+  }
+}
+
+// Show message when no products are selected
+function showNoProductsSelectedMessage() {
+  const selectedProductsContainer = document.getElementById('selectedProducts');
+  const noProductsMsg = document.createElement('div');
+  noProductsMsg.textContent = 'No products selected';
+  noProductsMsg.style.color = '#a0a0a0';
+  selectedProductsContainer.appendChild(noProductsMsg);
+}
+
+// Update the active filters display with selected products
+function updateActiveProductFiltersDisplay() {
+  const activeFiltersContainer = document.getElementById('activeFilters');
+  activeFiltersContainer.innerHTML = '';
+  
+  // Create pill elements for each selected product
+  selectedProducts.forEach(productTitle => {
+    const pill = document.createElement('div');
+    pill.className = 'filter-pill';
+    pill.innerHTML = `
+      <span class="filter-pill-text">tag: Product ${productTitle}</span>
+      <span class="filter-pill-remove" data-product="${productTitle}">×</span>
+    `;
+    
+    // Add click event to remove button
+    pill.querySelector('.filter-pill-remove').addEventListener('click', function() {
+      const product = this.dataset.product;
+      
+      // Remove from selected products
+      const index = selectedProducts.indexOf(product);
+      if (index !== -1) {
+        selectedProducts.splice(index, 1);
+      }
+      
+      // Remove pill from display
+      pill.remove();
+      
+      // Check if any products are still active
+      const hasActiveProducts = selectedProducts.length > 0;
+      
+      // Show/hide the active filters container
+      document.getElementById('activeFiltersContainer').style.display = hasActiveProducts ? 'flex' : 'none';
+      
+      // Update the dashboard
+      showLoading();
+      setTimeout(function() {
+        updateDashboard();
+        hideLoading();
+      }, 500);
+    });
+    
+    activeFiltersContainer.appendChild(pill);
+  });
 } 

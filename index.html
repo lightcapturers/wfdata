@@ -128,8 +128,11 @@
 
       <!-- Filter Buttons -->
       <div class="filter-buttons">
-        <button id="customViewBtn" class="btn btn-primary">
-          <i class="fas fa-filter"></i> Custom View
+        <button id="customViewCategoryBtn" class="btn btn-primary">
+          <i class="fas fa-filter"></i> Custom View by Category
+        </button>
+        <button id="customViewProductBtn" class="btn btn-primary">
+          <i class="fas fa-list"></i> Custom View by Product
         </button>
         <button id="applyFilters" class="btn btn-primary">Apply Filters</button>
         <button id="resetFilters" class="btn btn-outline">Reset Filters</button>
@@ -143,11 +146,11 @@
       <button id="clearAllFilters" class="clear-all-btn">Clear all</button>
     </div>
 
-    <!-- Custom View Modal -->
-    <div id="customViewModal" class="modal">
+    <!-- Custom View by Category Modal -->
+    <div id="customViewCategoryModal" class="modal">
       <div class="modal-content">
         <div class="modal-header">
-          <h2>Create Custom View</h2>
+          <h2>Create Custom View by Category</h2>
           <span class="close-modal">&times;</span>
         </div>
         <div class="modal-body">
@@ -207,8 +210,83 @@
           </div>
         </div>
         <div class="modal-footer">
-          <button id="applyCustomView" class="btn btn-primary">Apply Custom View</button>
-          <button id="cancelCustomView" class="btn btn-outline">Cancel</button>
+          <button id="applyCustomViewCategory" class="btn btn-primary">Apply Custom View</button>
+          <button id="cancelCustomViewCategory" class="btn btn-outline">Cancel</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Custom View by Product Modal -->
+    <div id="customViewProductModal" class="modal">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h2>Create Custom View by Product</h2>
+          <span class="close-modal">&times;</span>
+        </div>
+        <div class="modal-body">
+          <div class="product-filter-section">
+            <div class="filter-row">
+              <div class="product-filter-group">
+                <label class="product-filter-label">Filter by Vendor</label>
+                <select id="productFilterVendor" class="filter-select">
+                  <option value="">All Vendors</option>
+                </select>
+              </div>
+              
+              <div class="product-filter-group">
+                <label class="product-filter-label">Filter by Wheel</label>
+                <select id="productFilterWheel" class="filter-select">
+                  <option value="">All Wheels</option>
+                </select>
+              </div>
+              
+              <div class="product-filter-group">
+                <label class="product-filter-label">Filter by Bolt Pattern</label>
+                <select id="productFilterBoltPattern" class="filter-select">
+                  <option value="">All Bolt Patterns</option>
+                </select>
+              </div>
+              
+              <div class="product-filter-group">
+                <label class="product-filter-label">Filter by Finish</label>
+                <select id="productFilterFinish" class="filter-select">
+                  <option value="">All Finishes</option>
+                </select>
+              </div>
+            </div>
+            
+            <div class="product-search-container">
+              <input type="text" id="productSearchInput" class="filter-search" placeholder="Search products...">
+              <i class="fas fa-search filter-search-icon"></i>
+            </div>
+          </div>
+          
+          <div class="product-list-section">
+            <h3>Available Products</h3>
+            <div class="product-list-container">
+              <table class="product-table">
+                <thead>
+                  <tr>
+                    <th>Product</th>
+                    <th>Vendor</th>
+                    <th>Info</th>
+                  </tr>
+                </thead>
+                <tbody id="productList">
+                  <!-- Products will be loaded here -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+          
+          <div class="selected-products-section">
+            <h3>Selected Products</h3>
+            <div class="selected-products" id="selectedProducts"></div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button id="applyCustomViewProduct" class="btn btn-primary">Apply Custom View</button>
+          <button id="cancelCustomViewProduct" class="btn btn-outline">Cancel</button>
         </div>
       </div>
     </div>
