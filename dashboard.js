@@ -6,6 +6,11 @@ let salesChart = null;
 let productsChart = null;
 let channelChart = null;
 let forecastData = {};
+let selectedStartDate = null;
+let selectedEndDate = null;
+let currentDate = new Date();
+let currentMonth = currentDate.getMonth();
+let currentYear = currentDate.getFullYear();
 
 // Dashboard initialization
 document.addEventListener('DOMContentLoaded', function() {
@@ -25,22 +30,380 @@ function initializeDashboard() {
     }
   });
   
-  // Initialize date pickers with sensible defaults
-  const today = new Date();
-  const oneMonthAgo = new Date();
-  oneMonthAgo.setMonth(today.getMonth() - 1);
-  
-  document.getElementById('startDate').valueAsDate = oneMonthAgo;
-  document.getElementById('endDate').valueAsDate = today;
+  // Initialize date pickers with sensible defaults (last 30 days)
+  setDateRange('last30days');
   
   // Initialize filter dropdowns
   initializeFilters();
+  
+  // Initialize date range selector
+  initializeDateRangeSelector();
   
   // Apply initial data processing
   updateDashboard();
   
   // Set up event listeners
   setupEventListeners();
+}
+
+// Initialize the date range selector
+function initializeDateRangeSelector() {
+  const dateRangeBtn = document.getElementById('dateRangeBtn');
+  const dateRangeDropdown = document.getElementById('dateRangeDropdown');
+  const quickSelectOptions = document.querySelectorAll('.quick-select-option');
+  const applyDateRangeBtn = document.getElementById('applyDateRange');
+  const cancelDateRangeBtn = document.getElementById('cancelDateRange');
+  const prevMonthBtn = document.getElementById('prevMonthBtn');
+  const nextMonthBtn = document.getElementById('nextMonthBtn');
+  
+  // Initialize calendar
+  updateCalendar(currentMonth, currentYear);
+  
+  // Toggle dropdown when button is clicked
+  dateRangeBtn.addEventListener('click', function() {
+    dateRangeDropdown.classList.toggle('active');
+  });
+  
+  // Close dropdown when clicking outside
+  document.addEventListener('click', function(e) {
+    if (!dateRangeBtn.contains(e.target) && !dateRangeDropdown.contains(e.target)) {
+      dateRangeDropdown.classList.remove('active');
+    }
+  });
+  
+  // Handle quick select options
+  quickSelectOptions.forEach(option => {
+    option.addEventListener('click', function() {
+      const rangeType = this.dataset.range;
+      
+      // Update active class
+      quickSelectOptions.forEach(opt => opt.classList.remove('active'));
+      this.classList.add('active');
+      
+      // Set the date range
+      setDateRange(rangeType);
+      
+      // Update the calendar display to show selected range
+      updateCalendarSelection();
+    });
+  });
+  
+  // Navigate to previous month
+  prevMonthBtn.addEventListener('click', function() {
+    currentMonth--;
+    if (currentMonth < 0) {
+      currentMonth = 11;
+      currentYear--;
+    }
+    updateCalendar(currentMonth, currentYear);
+    updateCalendarSelection();
+  });
+  
+  // Navigate to next month
+  nextMonthBtn.addEventListener('click', function() {
+    currentMonth++;
+    if (currentMonth > 11) {
+      currentMonth = 0;
+      currentYear++;
+    }
+    updateCalendar(currentMonth, currentYear);
+    updateCalendarSelection();
+  });
+  
+  // Apply selected date range
+  applyDateRangeBtn.addEventListener('click', function() {
+    if (selectedStartDate && selectedEndDate) {
+      document.getElementById('startDate').value = formatDate(selectedStartDate);
+      document.getElementById('endDate').value = formatDate(selectedEndDate);
+      
+      // Update display text
+      updateDateRangeDisplay();
+      
+      // Close dropdown
+      dateRangeDropdown.classList.remove('active');
+      
+      // Update dashboard
+      showLoading();
+      setTimeout(function() {
+        updateDashboard();
+        hideLoading();
+      }, 500);
+    }
+  });
+  
+  // Cancel selection
+  cancelDateRangeBtn.addEventListener('click', function() {
+    dateRangeDropdown.classList.remove('active');
+  });
+}
+
+// Update calendar display
+function updateCalendar(month, year) {
+  const calendarDays = document.getElementById('calendarDays');
+  const currentMonthYear = document.getElementById('currentMonthYear');
+  
+  // Clear previous calendar days
+  calendarDays.innerHTML = '';
+  
+  // Update month/year display
+  const monthNames = ["January", "February", "March", "April", "May", "June",
+                      "July", "August", "September", "October", "November", "December"];
+  currentMonthYear.textContent = `${monthNames[month]} ${year}`;
+  
+  // Get first day of month and total days
+  const firstDay = new Date(year, month, 1).getDay();
+  const daysInMonth = new Date(year, month + 1, 0).getDate();
+  
+  // Create calendar grid
+  // Add empty cells for days before the first day of month
+  for (let i = 0; i < firstDay; i++) {
+    const emptyCell = document.createElement('div');
+    emptyCell.classList.add('calendar-day', 'disabled');
+    calendarDays.appendChild(emptyCell);
+  }
+  
+  // Add days of the month
+  for (let day = 1; day <= daysInMonth; day++) {
+    const dayCell = document.createElement('div');
+    dayCell.classList.add('calendar-day');
+    dayCell.textContent = day;
+    
+    // Check if this is today
+    const today = new Date();
+    if (day === today.getDate() && month === today.getMonth() && year === today.getFullYear()) {
+      dayCell.classList.add('today');
+    }
+    
+    // Add click event to select date
+    dayCell.addEventListener('click', function() {
+      const clickedDate = new Date(year, month, day);
+      
+      // If we haven't selected a start date yet, or if we've already selected both, reset selection
+      if (!selectedStartDate || (selectedStartDate && selectedEndDate)) {
+        selectedStartDate = clickedDate;
+        selectedEndDate = null;
+      } 
+      // If we already have a start date but no end date
+      else if (selectedStartDate && !selectedEndDate) {
+        // If clicked date is before start date, swap them
+        if (clickedDate < selectedStartDate) {
+          selectedEndDate = selectedStartDate;
+          selectedStartDate = clickedDate;
+        } else {
+          selectedEndDate = clickedDate;
+        }
+      }
+      
+      // Update calendar to show selection
+      updateCalendarSelection();
+    });
+    
+    calendarDays.appendChild(dayCell);
+  }
+}
+
+// Update calendar to show selected date range
+function updateCalendarSelection() {
+  const calendarDays = document.querySelectorAll('.calendar-day:not(.disabled)');
+  
+  // Clear previous selections
+  calendarDays.forEach(day => {
+    day.classList.remove('selected', 'in-range');
+  });
+  
+  if (!selectedStartDate) return;
+  
+  // Mark selected dates
+  calendarDays.forEach(day => {
+    if (!day.textContent) return;
+    
+    const dayNum = parseInt(day.textContent);
+    const cellDate = new Date(currentYear, currentMonth, dayNum);
+    
+    // Check if this day is the start date
+    if (cellDate.getDate() === selectedStartDate.getDate() && 
+        cellDate.getMonth() === selectedStartDate.getMonth() && 
+        cellDate.getFullYear() === selectedStartDate.getFullYear()) {
+      day.classList.add('selected');
+    }
+    
+    // Check if this day is the end date
+    if (selectedEndDate && 
+        cellDate.getDate() === selectedEndDate.getDate() && 
+        cellDate.getMonth() === selectedEndDate.getMonth() && 
+        cellDate.getFullYear() === selectedEndDate.getFullYear()) {
+      day.classList.add('selected');
+    }
+    
+    // Check if this day is in the selected range
+    if (selectedEndDate && 
+        cellDate > selectedStartDate && 
+        cellDate < selectedEndDate) {
+      day.classList.add('in-range');
+    }
+  });
+}
+
+// Set date range based on quick select option
+function setDateRange(rangeType) {
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  
+  let startDate = new Date(today);
+  let endDate = new Date(today);
+  
+  switch(rangeType) {
+    case 'today':
+      // Start and end are already today
+      break;
+      
+    case 'yesterday':
+      startDate.setDate(today.getDate() - 1);
+      endDate.setDate(today.getDate() - 1);
+      break;
+      
+    case 'last7days':
+      startDate.setDate(today.getDate() - 6);
+      break;
+      
+    case 'last30days':
+      startDate.setDate(today.getDate() - 29);
+      break;
+      
+    case 'last60days':
+      startDate.setDate(today.getDate() - 59);
+      break;
+      
+    case 'last90days':
+      startDate.setDate(today.getDate() - 89);
+      break;
+      
+    case 'thisMonth':
+      startDate = new Date(today.getFullYear(), today.getMonth(), 1);
+      endDate = new Date(today.getFullYear(), today.getMonth() + 1, 0);
+      break;
+      
+    case 'lastMonth':
+      startDate = new Date(today.getFullYear(), today.getMonth() - 1, 1);
+      endDate = new Date(today.getFullYear(), today.getMonth(), 0);
+      break;
+      
+    case 'allTime':
+      // Find the earliest date in the data
+      const dates = sampleData.map(item => new Date(item.date));
+      startDate = new Date(Math.min(...dates));
+      startDate.setHours(0, 0, 0, 0);
+      break;
+  }
+  
+  // Set the selected dates
+  selectedStartDate = startDate;
+  selectedEndDate = endDate;
+  
+  // Update hidden inputs
+  document.getElementById('startDate').value = formatDate(startDate);
+  document.getElementById('endDate').value = formatDate(endDate);
+  
+  // Update display text
+  updateDateRangeDisplay();
+}
+
+// Update the displayed date range text
+function updateDateRangeDisplay() {
+  const dateRangeDisplay = document.getElementById('dateRangeDisplay');
+  
+  if (selectedStartDate && selectedEndDate) {
+    if (isSameDate(selectedStartDate, selectedEndDate)) {
+      // Same day
+      dateRangeDisplay.textContent = formatDateDisplay(selectedStartDate);
+    } else {
+      // Date range
+      dateRangeDisplay.textContent = `${formatDateDisplay(selectedStartDate)} - ${formatDateDisplay(selectedEndDate)}`;
+    }
+  } else if (selectedStartDate) {
+    dateRangeDisplay.textContent = formatDateDisplay(selectedStartDate);
+  } else {
+    dateRangeDisplay.textContent = 'Select Date Range';
+  }
+  
+  // Check if it matches a preset range
+  const quickSelectOptions = document.querySelectorAll('.quick-select-option');
+  quickSelectOptions.forEach(option => {
+    option.classList.remove('active');
+  });
+  
+  // Find and activate the matching quick option if exists
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  
+  if (isSameDate(selectedStartDate, today) && isSameDate(selectedEndDate, today)) {
+    document.querySelector('.quick-select-option[data-range="today"]').classList.add('active');
+    dateRangeDisplay.textContent = 'Today';
+  } else if (
+    isSameDate(selectedStartDate, new Date(today.getFullYear(), today.getMonth(), today.getDate() - 1)) && 
+    isSameDate(selectedEndDate, new Date(today.getFullYear(), today.getMonth(), today.getDate() - 1))
+  ) {
+    document.querySelector('.quick-select-option[data-range="yesterday"]').classList.add('active');
+    dateRangeDisplay.textContent = 'Yesterday';
+  } else if (
+    isSameDate(selectedStartDate, new Date(today.getFullYear(), today.getMonth(), today.getDate() - 6)) && 
+    isSameDate(selectedEndDate, today)
+  ) {
+    document.querySelector('.quick-select-option[data-range="last7days"]').classList.add('active');
+    dateRangeDisplay.textContent = 'Last 7 Days';
+  } else if (
+    isSameDate(selectedStartDate, new Date(today.getFullYear(), today.getMonth(), today.getDate() - 29)) && 
+    isSameDate(selectedEndDate, today)
+  ) {
+    document.querySelector('.quick-select-option[data-range="last30days"]').classList.add('active');
+    dateRangeDisplay.textContent = 'Last 30 Days';
+  } else if (
+    isSameDate(selectedStartDate, new Date(today.getFullYear(), today.getMonth(), today.getDate() - 59)) && 
+    isSameDate(selectedEndDate, today)
+  ) {
+    document.querySelector('.quick-select-option[data-range="last60days"]').classList.add('active');
+    dateRangeDisplay.textContent = 'Last 60 Days';
+  } else if (
+    isSameDate(selectedStartDate, new Date(today.getFullYear(), today.getMonth(), today.getDate() - 89)) && 
+    isSameDate(selectedEndDate, today)
+  ) {
+    document.querySelector('.quick-select-option[data-range="last90days"]').classList.add('active');
+    dateRangeDisplay.textContent = 'Last 90 Days';
+  } else if (
+    isSameDate(selectedStartDate, new Date(today.getFullYear(), today.getMonth(), 1)) && 
+    isSameDate(selectedEndDate, new Date(today.getFullYear(), today.getMonth() + 1, 0))
+  ) {
+    document.querySelector('.quick-select-option[data-range="thisMonth"]').classList.add('active');
+    dateRangeDisplay.textContent = 'This Month';
+  } else if (
+    isSameDate(selectedStartDate, new Date(today.getFullYear(), today.getMonth() - 1, 1)) && 
+    isSameDate(selectedEndDate, new Date(today.getFullYear(), today.getMonth(), 0))
+  ) {
+    document.querySelector('.quick-select-option[data-range="lastMonth"]').classList.add('active');
+    dateRangeDisplay.textContent = 'Last Month';
+  }
+}
+
+// Format date for display (MMM D, YYYY)
+function formatDateDisplay(date) {
+  const options = { month: 'short', day: 'numeric', year: 'numeric' };
+  return date.toLocaleDateString('en-US', options);
+}
+
+// Format date for input value (YYYY-MM-DD)
+function formatDate(date) {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+}
+
+// Check if two dates are the same (ignoring time)
+function isSameDate(date1, date2) {
+  if (!date1 || !date2) return false;
+  return date1.getFullYear() === date2.getFullYear() &&
+         date1.getMonth() === date2.getMonth() &&
+         date1.getDate() === date2.getDate();
 }
 
 // Update the last updated time display
@@ -263,13 +626,8 @@ function resetFilters() {
     dropdown.value = '';
   });
   
-  // Reset date pickers
-  const today = new Date();
-  const oneMonthAgo = new Date();
-  oneMonthAgo.setMonth(today.getMonth() - 1);
-  
-  document.getElementById('startDate').valueAsDate = oneMonthAgo;
-  document.getElementById('endDate').valueAsDate = today;
+  // Reset date range to last 30 days
+  setDateRange('last30days');
   
   // Reset search
   document.getElementById('searchInput').value = '';

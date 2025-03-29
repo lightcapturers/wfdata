@@ -34,13 +34,55 @@
 
       <!-- Filter Row 1 -->
       <div class="filters-row">
-        <div class="filter-group">
-          <label for="startDate" class="filter-label">Start Date</label>
-          <input type="date" id="startDate" class="filter-input">
-        </div>
-        <div class="filter-group">
-          <label for="endDate" class="filter-label">End Date</label>
-          <input type="date" id="endDate" class="filter-input">
+        <div class="filter-group date-range-container">
+          <label class="filter-label">Date Range</label>
+          <div class="date-range-selector">
+            <button id="dateRangeBtn" class="date-range-btn">
+              <span id="dateRangeDisplay">Last 30 Days</span>
+              <i class="fas fa-caret-down"></i>
+            </button>
+            <div id="dateRangeDropdown" class="date-range-dropdown">
+              <div class="quick-selections">
+                <button class="quick-select-option" data-range="today">Today</button>
+                <button class="quick-select-option" data-range="yesterday">Yesterday</button>
+                <button class="quick-select-option" data-range="last7days">Last 7 Days</button>
+                <button class="quick-select-option" data-range="last30days">Last 30 Days</button>
+                <button class="quick-select-option" data-range="last60days">Last 60 Days</button>
+                <button class="quick-select-option" data-range="last90days">Last 90 Days</button>
+                <button class="quick-select-option" data-range="thisMonth">This Month</button>
+                <button class="quick-select-option" data-range="lastMonth">Last Month</button>
+                <button class="quick-select-option" data-range="allTime">All Time</button>
+              </div>
+              <div class="date-range-calendar">
+                <div class="calendar-container">
+                  <div class="calendar-header">
+                    <button id="prevMonthBtn" class="calendar-nav-btn"><i class="fas fa-chevron-left"></i></button>
+                    <div id="currentMonthYear" class="current-month-year">March 2025</div>
+                    <button id="nextMonthBtn" class="calendar-nav-btn"><i class="fas fa-chevron-right"></i></button>
+                  </div>
+                  <div class="calendar-days">
+                    <div class="calendar-days-grid">
+                      <div class="weekday">Sun</div>
+                      <div class="weekday">Mon</div>
+                      <div class="weekday">Tue</div>
+                      <div class="weekday">Wed</div>
+                      <div class="weekday">Thu</div>
+                      <div class="weekday">Fri</div>
+                      <div class="weekday">Sat</div>
+                    </div>
+                    <div id="calendarDays" class="calendar-days-grid"></div>
+                  </div>
+                </div>
+                <div class="calendar-footer">
+                  <button id="applyDateRange" class="btn btn-primary">Apply Date Range</button>
+                  <button id="cancelDateRange" class="btn btn-outline">Cancel</button>
+                </div>
+              </div>
+            </div>
+          </div>
+          <!-- Hidden inputs to store actual date values -->
+          <input type="hidden" id="startDate">
+          <input type="hidden" id="endDate">
         </div>
         <div class="filter-group">
           <label for="channelFilter" class="filter-label">Channel</label>
