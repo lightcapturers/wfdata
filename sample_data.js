@@ -1,20 +1,6 @@
 const sampleData = [
   {
     "id": 1,
-    "date": "3/27/2025",
-    "channel": "eBay",
-    "vendor": "Spoon",
-    "wheel": "Spoon SW388",
-    "size": "18x9.5 +40",
-    "boltPattern": "5x120",
-    "finish": "Black",
-    "quantity": 1,
-    "price": 3978,
-    "sku": "S-SW388-189.5+40-5120-B",
-    "productTitle": "Spoon SW38818x9.5 +405x120Black"
-  },
-  {
-    "id": 2,
     "date": "3/28/2025",
     "channel": "Shopify",
     "vendor": "Volk",
@@ -28,7 +14,7 @@ const sampleData = [
     "productTitle": "Volk Racing CE28N-Plus18x9.5 +225x114.3Shining Metal Bronze"
   },
   {
-    "id": 3,
+    "id": 2,
     "date": "3/28/2025",
     "channel": "Shopify",
     "vendor": "Spoon",
@@ -42,7 +28,7 @@ const sampleData = [
     "productTitle": "Spoon SW38818x9.5 +405x120Black"
   },
   {
-    "id": 4,
+    "id": 3,
     "date": "3/28/2025",
     "channel": "Shopify",
     "vendor": "Advan",
@@ -54,6 +40,20 @@ const sampleData = [
     "price": 3635.46,
     "sku": "A-GTBeyond-189.5+38-51143-TB",
     "productTitle": "Advan GT Beyond18x9.5 +385x114.3Titanium Black"
+  },
+  {
+    "id": 4,
+    "date": "3/27/2025",
+    "channel": "eBay",
+    "vendor": "Spoon",
+    "wheel": "Spoon SW388",
+    "size": "18x9.5 +40",
+    "boltPattern": "5x120",
+    "finish": "Black",
+    "quantity": 1,
+    "price": 3978,
+    "sku": "S-SW388-189.5+40-5120-B",
+    "productTitle": "Spoon SW38818x9.5 +405x120Black"
   },
   {
     "id": 5,
