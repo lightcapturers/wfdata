@@ -12,6 +12,16 @@ let currentDate = new Date();
 let currentMonth = currentDate.getMonth();
 let currentYear = currentDate.getFullYear();
 
+// Add these variables for custom view functionality
+let selectedFilters = {
+  wheel: [],
+  vendor: [],
+  size: [],
+  boltPattern: [],
+  finish: [],
+  channel: []
+};
+
 // Dashboard initialization
 document.addEventListener('DOMContentLoaded', function() {
   initializeDashboard();
@@ -39,11 +49,17 @@ function initializeDashboard() {
   // Initialize date range selector
   initializeDateRangeSelector();
   
+  // Initialize custom view functionality
+  initializeCustomView();
+  
   // Apply initial data processing
   updateDashboard();
   
   // Set up event listeners
   setupEventListeners();
+  
+  // Hide active filters container initially
+  document.getElementById('activeFiltersContainer').style.display = 'none';
 }
 
 // Initialize the date range selector
@@ -477,355 +493,345 @@ function populateFilterDropdown(elementId, options) {
   });
 }
 
-// Set up event listeners for filters and buttons
-function setupEventListeners() {
-  // Apply filters button
-  document.getElementById('applyFilters').addEventListener('click', function() {
-    showLoading();
-    setTimeout(function() {
-      updateDashboard();
-      hideLoading();
-    }, 500); // Simulate loading time
+// Initialize custom view functionality
+function initializeCustomView() {
+  const modal = document.getElementById('customViewModal');
+  const customViewBtn = document.getElementById('customViewBtn');
+  const closeModalBtn = document.querySelector('.close-modal');
+  const applyCustomViewBtn = document.getElementById('applyCustomView');
+  const cancelCustomViewBtn = document.getElementById('cancelCustomView');
+  
+  // Populate multi-select dropdowns
+  populateMultiSelectDropdown('wheelDropdown', 'wheel');
+  populateMultiSelectDropdown('vendorDropdown', 'vendor');
+  populateMultiSelectDropdown('sizeDropdown', 'size');
+  populateMultiSelectDropdown('boltPatternDropdown', 'boltPattern');
+  populateMultiSelectDropdown('finishDropdown', 'finish');
+  populateMultiSelectDropdown('channelDropdown', 'channel');
+  
+  // Open modal when Custom View button is clicked
+  customViewBtn.addEventListener('click', function() {
+    modal.style.display = 'block';
+    document.body.style.overflow = 'hidden'; // Prevent scrolling behind modal
+    updateSelectedFiltersDisplay();
   });
   
-  // Reset filters button
-  document.getElementById('resetFilters').addEventListener('click', function() {
-    resetFilters();
-    showLoading();
-    setTimeout(function() {
-      updateDashboard();
-      hideLoading();
-    }, 500); // Simulate loading time
+  // Close modal on X button click
+  closeModalBtn.addEventListener('click', function() {
+    modal.style.display = 'none';
+    document.body.style.overflow = 'auto';
   });
   
-  // Refresh data button
-  document.getElementById('refreshData').addEventListener('click', function() {
+  // Close modal when clicking outside the modal content
+  window.addEventListener('click', function(e) {
+    if (e.target === modal) {
+      modal.style.display = 'none';
+      document.body.style.overflow = 'auto';
+    }
+  });
+  
+  // Apply custom view filters
+  applyCustomViewBtn.addEventListener('click', function() {
+    // Apply the filters
+    modal.style.display = 'none';
+    document.body.style.overflow = 'auto';
+    
+    // Check if any filters are selected
+    const hasActiveFilters = Object.values(selectedFilters).some(arr => arr.length > 0);
+    
+    // Show/hide the active filters container
+    document.getElementById('activeFiltersContainer').style.display = hasActiveFilters ? 'flex' : 'none';
+    
+    // Update the active filters display
+    updateActiveFiltersDisplay();
+    
+    // Update the dashboard with the custom filters
     showLoading();
     setTimeout(function() {
-      // Reload data from the current script
-      filteredData = [...sampleData];
-      
-      // Update last updated time
-      updateLastUpdatedTime();
-      
-      // Update dashboard
       updateDashboard();
       hideLoading();
     }, 500);
   });
   
-  // Channel filter change - update dependent filters
-  document.getElementById('channelFilter').addEventListener('change', function() {
-    updateDependentFilters('channel', this.value);
+  // Cancel custom view
+  cancelCustomViewBtn.addEventListener('click', function() {
+    modal.style.display = 'none';
+    document.body.style.overflow = 'auto';
   });
   
-  // Vendor filter change - update dependent filters
-  document.getElementById('vendorFilter').addEventListener('change', function() {
-    updateDependentFilters('vendor', this.value);
-  });
+  // Set up event listeners for search inputs
+  setupSearchInputs();
   
-  // Search input
-  document.getElementById('searchInput').addEventListener('input', function() {
-    if (this.value.length > 2 || this.value.length === 0) {
-      showLoading();
-      setTimeout(function() {
-        updateDashboard();
-        hideLoading();
-      }, 500); // Debounce search input
+  // Set up clear all filters button
+  document.getElementById('clearAllFilters').addEventListener('click', function() {
+    // Clear all selected filters
+    Object.keys(selectedFilters).forEach(key => {
+      selectedFilters[key] = [];
+    });
+    
+    // Hide the active filters container
+    document.getElementById('activeFiltersContainer').style.display = 'none';
+    
+    // Clear the active filters display
+    document.getElementById('activeFilters').innerHTML = '';
+    
+    // Reset checkbox states in dropdowns
+    document.querySelectorAll('.multi-select-option.selected').forEach(option => {
+      option.classList.remove('selected');
+      option.querySelector('input[type="checkbox"]').checked = false;
+    });
+    
+    // Update the dashboard
+    showLoading();
+    setTimeout(function() {
+      updateDashboard();
+      hideLoading();
+    }, 500);
+  });
+}
+
+// Populate multi-select dropdown with options
+function populateMultiSelectDropdown(dropdownId, filterType) {
+  const dropdown = document.getElementById(dropdownId);
+  
+  // Get unique values for the filter type
+  const values = [...new Set(sampleData.map(item => item[filterType]))];
+  
+  // Sort the values alphabetically
+  values.sort();
+  
+  // Create option elements
+  values.forEach(value => {
+    const option = document.createElement('div');
+    option.className = 'multi-select-option';
+    
+    // Check if this value is already selected
+    const isSelected = selectedFilters[filterType].includes(value);
+    if (isSelected) {
+      option.classList.add('selected');
     }
+    
+    option.innerHTML = `
+      <input type="checkbox" class="multi-select-checkbox" ${isSelected ? 'checked' : ''}>
+      <span>${value}</span>
+    `;
+    
+    // Add click event to toggle selection
+    option.addEventListener('click', function(e) {
+      // Prevent checkbox from handling the click itself (we'll do it manually)
+      if (e.target.type === 'checkbox') {
+        e.stopPropagation();
+        return;
+      }
+      
+      const checkbox = this.querySelector('input[type="checkbox"]');
+      const value = this.querySelector('span').textContent;
+      
+      // Toggle checkbox state
+      checkbox.checked = !checkbox.checked;
+      
+      // Toggle selected class
+      this.classList.toggle('selected');
+      
+      // Update selected filters
+      if (checkbox.checked) {
+        if (!selectedFilters[filterType].includes(value)) {
+          selectedFilters[filterType].push(value);
+        }
+      } else {
+        selectedFilters[filterType] = selectedFilters[filterType].filter(v => v !== value);
+      }
+      
+      // Update the selected filters display
+      updateSelectedFiltersDisplay();
+    });
+    
+    // Handle checkbox click separately
+    option.querySelector('input[type="checkbox"]').addEventListener('click', function(e) {
+      // Stop propagation to prevent the option click handler from firing
+      e.stopPropagation();
+      
+      // Update selected state
+      if (this.checked) {
+        option.classList.add('selected');
+        if (!selectedFilters[filterType].includes(value)) {
+          selectedFilters[filterType].push(value);
+        }
+      } else {
+        option.classList.remove('selected');
+        selectedFilters[filterType] = selectedFilters[filterType].filter(v => v !== value);
+      }
+      
+      // Update the selected filters display
+      updateSelectedFiltersDisplay();
+    });
+    
+    dropdown.appendChild(option);
   });
+}
+
+// Set up search functionality for multi-select inputs
+function setupSearchInputs() {
+  const searchInputs = document.querySelectorAll('.multi-select-search');
   
-  // Chart view options
-  document.querySelectorAll('.chart-option').forEach(option => {
-    option.addEventListener('click', function() {
-      const chartId = this.closest('.chart-card').id;
-      const viewType = this.dataset.view;
+  searchInputs.forEach(input => {
+    const dropdown = input.nextElementSibling;
+    
+    // Show dropdown when input is focused
+    input.addEventListener('focus', function() {
+      dropdown.classList.add('active');
+    });
+    
+    // Handle search input
+    input.addEventListener('input', function() {
+      const searchTerm = this.value.toLowerCase();
+      const options = dropdown.querySelectorAll('.multi-select-option');
       
-      // Update active class
-      this.closest('.chart-options').querySelectorAll('.chart-option').forEach(opt => {
-        opt.classList.remove('active');
+      options.forEach(option => {
+        const text = option.querySelector('span').textContent.toLowerCase();
+        if (text.includes(searchTerm)) {
+          option.style.display = 'flex';
+        } else {
+          option.style.display = 'none';
+        }
       });
-      this.classList.add('active');
-      
-      // Update chart based on view type
-      if (chartId === 'salesChartCard') {
-        updateSalesChart(viewType);
-      } else if (chartId === 'productsChartCard') {
-        updateProductsChart(viewType);
+    });
+    
+    // Handle click outside to close dropdown
+    document.addEventListener('click', function(e) {
+      if (!input.contains(e.target) && !dropdown.contains(e.target)) {
+        dropdown.classList.remove('active');
       }
     });
   });
 }
 
-// Update filters based on selected value in a parent filter
-function updateDependentFilters(filterType, filterValue) {
-  // Skip if 'All' is selected
-  if (!filterValue) return;
+// Update the display of selected filters in the modal
+function updateSelectedFiltersDisplay() {
+  const selectedFiltersContainer = document.getElementById('selectedFilters');
+  selectedFiltersContainer.innerHTML = '';
   
-  // Get filtered data based on the selected filter
-  const baseData = sampleData.filter(item => item[filterType] === filterValue);
-  
-  // Update other filters based on available values in the filtered data
-  if (filterType !== 'channel') {
-    const channels = [...new Set(baseData.map(item => item.channel))];
-    updateFilterOptions('channelFilter', channels);
-  }
-  
-  if (filterType !== 'vendor') {
-    const vendors = [...new Set(baseData.map(item => item.vendor))];
-    updateFilterOptions('vendorFilter', vendors);
-  }
-  
-  if (filterType !== 'wheel') {
-    const wheels = [...new Set(baseData.map(item => item.wheel))];
-    updateFilterOptions('wheelFilter', wheels);
-  }
-  
-  if (filterType !== 'size') {
-    const sizes = [...new Set(baseData.map(item => item.size))];
-    updateFilterOptions('sizeFilter', sizes);
-  }
-  
-  if (filterType !== 'boltPattern') {
-    const boltPatterns = [...new Set(baseData.map(item => item.boltPattern))];
-    updateFilterOptions('boltPatternFilter', boltPatterns);
-  }
-  
-  if (filterType !== 'finish') {
-    const finishes = [...new Set(baseData.map(item => item.finish))];
-    updateFilterOptions('finishFilter', finishes);
-  }
-}
-
-// Update options in a filter dropdown
-function updateFilterOptions(elementId, options) {
-  const dropdown = document.getElementById(elementId);
-  const currentValue = dropdown.value;
-  
-  // Clear existing options
-  dropdown.innerHTML = '<option value="">All</option>';
-  
-  // Add options
-  options.forEach(option => {
-    const optionElement = document.createElement('option');
-    optionElement.value = option;
-    optionElement.textContent = option;
-    dropdown.appendChild(optionElement);
+  // Create pill elements for each selected filter
+  Object.entries(selectedFilters).forEach(([filterType, values]) => {
+    values.forEach(value => {
+      const pill = createFilterPill(filterType, value);
+      selectedFiltersContainer.appendChild(pill);
+    });
   });
   
-  // Restore selected value if it still exists in the new options
-  if (options.includes(currentValue)) {
-    dropdown.value = currentValue;
+  // Show a message if no filters are selected
+  if (selectedFiltersContainer.children.length === 0) {
+    const noFiltersMsg = document.createElement('div');
+    noFiltersMsg.textContent = 'No filters selected';
+    noFiltersMsg.style.color = '#a0a0a0';
+    selectedFiltersContainer.appendChild(noFiltersMsg);
   }
 }
 
-// Reset all filters to their default state
-function resetFilters() {
-  // Reset dropdowns
-  document.querySelectorAll('.filter-select').forEach(dropdown => {
-    dropdown.value = '';
+// Update the active filters display in the main dashboard
+function updateActiveFiltersDisplay() {
+  const activeFiltersContainer = document.getElementById('activeFilters');
+  activeFiltersContainer.innerHTML = '';
+  
+  // Create pill elements for each active filter
+  Object.entries(selectedFilters).forEach(([filterType, values]) => {
+    values.forEach(value => {
+      // Create a formatted filter type display name
+      const filterTypeDisplay = formatFilterType(filterType);
+      
+      const pill = document.createElement('div');
+      pill.className = 'filter-pill';
+      pill.innerHTML = `
+        <span class="filter-pill-text">tag: ${filterTypeDisplay} ${value}</span>
+        <span class="filter-pill-remove" data-type="${filterType}" data-value="${value}">×</span>
+      `;
+      
+      // Add click event to remove button
+      pill.querySelector('.filter-pill-remove').addEventListener('click', function() {
+        const type = this.dataset.type;
+        const value = this.dataset.value;
+        
+        // Remove from selected filters
+        selectedFilters[type] = selectedFilters[type].filter(v => v !== value);
+        
+        // Remove pill from display
+        pill.remove();
+        
+        // Update checkbox state in dropdown
+        const checkbox = document.querySelector(`#${type}Dropdown .multi-select-option span:contains('${value}')`).parentElement.querySelector('input[type="checkbox"]');
+        if (checkbox) {
+          checkbox.checked = false;
+          checkbox.parentElement.classList.remove('selected');
+        }
+        
+        // Check if any filters are still active
+        const hasActiveFilters = Object.values(selectedFilters).some(arr => arr.length > 0);
+        
+        // Show/hide the active filters container
+        document.getElementById('activeFiltersContainer').style.display = hasActiveFilters ? 'flex' : 'none';
+        
+        // Update the dashboard
+        showLoading();
+        setTimeout(function() {
+          updateDashboard();
+          hideLoading();
+        }, 500);
+      });
+      
+      activeFiltersContainer.appendChild(pill);
+    });
   });
-  
-  // Reset date range to last 30 days
-  setDateRange('last30days');
-  
-  // Reset search
-  document.getElementById('searchInput').value = '';
-  
-  // Reinitialize filter dropdowns
-  initializeFilters();
 }
 
-// Update all charts
-function updateCharts() {
-  updateSalesChart('daily');
-  updateProductsChart('wheel');
-  updateChannelChart();
-}
-
-// Update top products
-function updateTopProducts() {
-  const topProductsList = document.getElementById('topProductsList');
+// Create a filter pill element
+function createFilterPill(filterType, value) {
+  const filterTypeDisplay = formatFilterType(filterType);
   
-  // Clear the list
-  topProductsList.innerHTML = '';
+  const pill = document.createElement('div');
+  pill.className = 'filter-pill';
+  pill.innerHTML = `
+    <span class="filter-pill-text">${filterTypeDisplay}: ${value}</span>
+    <span class="filter-pill-remove" data-type="${filterType}" data-value="${value}">×</span>
+  `;
   
-  // Group data by product title
-  const productSales = {};
-  
-  filteredData.forEach(item => {
-    const productTitle = item.productTitle;
+  // Add click event to remove button
+  pill.querySelector('.filter-pill-remove').addEventListener('click', function() {
+    const type = this.dataset.type;
+    const value = this.dataset.value;
     
-    if (!productTitle) return; // Skip items without product title
+    // Remove from selected filters
+    selectedFilters[type] = selectedFilters[type].filter(v => v !== value);
     
-    if (!productSales[productTitle]) {
-      productSales[productTitle] = {
-        sales: 0,
-        count: 0,
-        vendor: item.vendor,
-        wheel: item.wheel,
-        size: item.size,
-        boltPattern: item.boltPattern,
-        finish: item.finish,
-        channel: item.channel
-      };
+    // Remove pill from display
+    pill.remove();
+    
+    // Update checkbox state in dropdown
+    const optionElement = document.querySelector(`#${type}Dropdown .multi-select-option:has(span:contains('${value}'))`);
+    if (optionElement) {
+      optionElement.classList.remove('selected');
+      optionElement.querySelector('input[type="checkbox"]').checked = false;
     }
     
-    productSales[productTitle].sales += item.price;
-    productSales[productTitle].count += 1;
+    // Update the selected filters display
+    updateSelectedFiltersDisplay();
   });
   
-  // Convert to array and sort by sales
-  const topProducts = Object.entries(productSales)
-    .map(([title, data]) => ({
-      title: title,
-      sales: data.sales,
-      count: data.count,
-      vendor: data.vendor,
-      wheel: data.wheel,
-      size: data.size,
-      boltPattern: data.boltPattern,
-      finish: data.finish,
-      channel: data.channel
-    }))
-    .sort((a, b) => b.sales - a.sales)
-    .slice(0, 10); // Get top 10
-  
-  // Create list items
-  topProducts.forEach(product => {
-    const li = document.createElement('li');
-    li.innerHTML = `
-      <div class="product-info">
-        <div class="product-title">${product.title}</div>
-        <div class="product-details">
-          ${product.count} orders | ${product.vendor} | ${product.size}
-        </div>
-      </div>
-      <div class="product-sales">$${product.sales.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</div>
-    `;
-    
-    // Add click event to filter dashboard
-    li.addEventListener('click', function() {
-      // Set filter dropdowns
-      document.getElementById('channelFilter').value = product.channel;
-      document.getElementById('vendorFilter').value = product.vendor;
-      document.getElementById('wheelFilter').value = product.wheel;
-      document.getElementById('sizeFilter').value = product.size;
-      document.getElementById('boltPatternFilter').value = product.boltPattern;
-      document.getElementById('finishFilter').value = product.finish;
-      
-      // Apply filters
-      showLoading();
-      setTimeout(function() {
-        updateDashboard();
-        hideLoading();
-      }, 500);
-    });
-    
-    topProductsList.appendChild(li);
-  });
-  
-  // Show "No data" message if no products
-  if (topProducts.length === 0) {
-    const li = document.createElement('li');
-    li.textContent = 'No product data available';
-    topProductsList.appendChild(li);
+  return pill;
+}
+
+// Format filter type for display
+function formatFilterType(filterType) {
+  switch(filterType) {
+    case 'boltPattern':
+      return 'Bolt Pattern';
+    default:
+      return filterType.charAt(0).toUpperCase() + filterType.slice(1);
   }
 }
 
-// Update top products by orders
-function updateTopProductsByOrders() {
-  const topProductsList = document.getElementById('topProductsByOrdersList');
-  
-  // Clear the list
-  topProductsList.innerHTML = '';
-  
-  // Group data by product title
-  const productOrders = {};
-  
-  filteredData.forEach(item => {
-    const productTitle = item.productTitle;
-    
-    if (!productTitle) return; // Skip items without product title
-    
-    if (!productOrders[productTitle]) {
-      productOrders[productTitle] = {
-        sales: 0,
-        count: 0,
-        vendor: item.vendor,
-        wheel: item.wheel,
-        size: item.size,
-        boltPattern: item.boltPattern,
-        finish: item.finish,
-        channel: item.channel
-      };
-    }
-    
-    productOrders[productTitle].sales += item.price;
-    productOrders[productTitle].count += 1;
-  });
-  
-  // Convert to array and sort by order count
-  const topProducts = Object.entries(productOrders)
-    .map(([title, data]) => ({
-      title: title,
-      sales: data.sales,
-      count: data.count,
-      vendor: data.vendor,
-      wheel: data.wheel,
-      size: data.size,
-      boltPattern: data.boltPattern,
-      finish: data.finish,
-      channel: data.channel
-    }))
-    .sort((a, b) => b.count - a.count)
-    .slice(0, 10); // Get top 10
-  
-  // Create list items
-  topProducts.forEach(product => {
-    const li = document.createElement('li');
-    li.innerHTML = `
-      <div class="product-info">
-        <div class="product-title">${product.title}</div>
-        <div class="product-details">
-          ${product.vendor} | ${product.size}
-        </div>
-      </div>
-      <div class="product-sales">${product.count} orders</div>
-    `;
-    
-    // Add click event to filter dashboard
-    li.addEventListener('click', function() {
-      // Set filter dropdowns
-      document.getElementById('channelFilter').value = product.channel;
-      document.getElementById('vendorFilter').value = product.vendor;
-      document.getElementById('wheelFilter').value = product.wheel;
-      document.getElementById('sizeFilter').value = product.size;
-      document.getElementById('boltPatternFilter').value = product.boltPattern;
-      document.getElementById('finishFilter').value = product.finish;
-      
-      // Apply filters
-      showLoading();
-      setTimeout(function() {
-        updateDashboard();
-        hideLoading();
-      }, 500);
-    });
-    
-    topProductsList.appendChild(li);
-  });
-  
-  // Show "No data" message if no products
-  if (topProducts.length === 0) {
-    const li = document.createElement('li');
-    li.textContent = 'No product data available';
-    topProductsList.appendChild(li);
-  }
-}
-
-// Apply filters and update the dashboard
+// Modify the updateDashboard function to handle custom filters
 function updateDashboard() {
-  // Get filter values
+  // Get regular filter values
   const channelFilter = document.getElementById('channelFilter').value;
   const vendorFilter = document.getElementById('vendorFilter').value;
   const wheelFilter = document.getElementById('wheelFilter').value;
@@ -850,13 +856,21 @@ function updateDashboard() {
       if (itemDate >= endDateAdjusted) return false;
     }
     
-    // Dropdown filters
-    if (channelFilter && item.channel !== channelFilter) return false;
-    if (vendorFilter && item.vendor !== vendorFilter) return false;
-    if (wheelFilter && item.wheel !== wheelFilter) return false;
-    if (sizeFilter && item.size !== sizeFilter) return false;
-    if (boltPatternFilter && item.boltPattern !== boltPatternFilter) return false;
-    if (finishFilter && item.finish !== finishFilter) return false;
+    // Dropdown filters (only apply if custom filters for that type are not active)
+    if (channelFilter && item.channel !== channelFilter && selectedFilters.channel.length === 0) return false;
+    if (vendorFilter && item.vendor !== vendorFilter && selectedFilters.vendor.length === 0) return false;
+    if (wheelFilter && item.wheel !== wheelFilter && selectedFilters.wheel.length === 0) return false;
+    if (sizeFilter && item.size !== sizeFilter && selectedFilters.size.length === 0) return false;
+    if (boltPatternFilter && item.boltPattern !== boltPatternFilter && selectedFilters.boltPattern.length === 0) return false;
+    if (finishFilter && item.finish !== finishFilter && selectedFilters.finish.length === 0) return false;
+    
+    // Custom multi-select filters
+    if (selectedFilters.channel.length > 0 && !selectedFilters.channel.includes(item.channel)) return false;
+    if (selectedFilters.vendor.length > 0 && !selectedFilters.vendor.includes(item.vendor)) return false;
+    if (selectedFilters.wheel.length > 0 && !selectedFilters.wheel.includes(item.wheel)) return false;
+    if (selectedFilters.size.length > 0 && !selectedFilters.size.includes(item.size)) return false;
+    if (selectedFilters.boltPattern.length > 0 && !selectedFilters.boltPattern.includes(item.boltPattern)) return false;
+    if (selectedFilters.finish.length > 0 && !selectedFilters.finish.includes(item.finish)) return false;
     
     // Search filter
     if (searchTerm) {
@@ -1577,4 +1591,383 @@ function showNotification(message, type = 'info') {
     notification.style.opacity = '0';
     notification.style.transform = 'translateY(-20px)';
   }, 3000);
+}
+
+// Add CSS selector for contains text
+// This allows us to select elements containing specific text
+if (!Element.prototype.matches) {
+  Element.prototype.matches = Element.prototype.msMatchesSelector || Element.prototype.webkitMatchesSelector;
+}
+
+if (!Element.prototype.closest) {
+  Element.prototype.closest = function(s) {
+    var el = this;
+    do {
+      if (el.matches(s)) return el;
+      el = el.parentElement || el.parentNode;
+    } while (el !== null && el.nodeType === 1);
+    return null;
+  };
+}
+
+// Polyfill for :has() selector since it's not supported in all browsers
+document.addEventListener('DOMContentLoaded', function() {
+  // We'll use querySelectorAll with custom filtering instead
+});
+
+// Extend setup event listeners function to include custom view
+function setupEventListeners() {
+  // Apply filters button
+  document.getElementById('applyFilters').addEventListener('click', function() {
+    showLoading();
+    setTimeout(function() {
+      updateDashboard();
+      hideLoading();
+    }, 500); // Simulate loading time
+  });
+  
+  // Reset filters button
+  document.getElementById('resetFilters').addEventListener('click', function() {
+    // Also clear custom filters
+    Object.keys(selectedFilters).forEach(key => {
+      selectedFilters[key] = [];
+    });
+    
+    // Hide active filters container
+    document.getElementById('activeFiltersContainer').style.display = 'none';
+    
+    // Clear active filters display
+    document.getElementById('activeFilters').innerHTML = '';
+    
+    resetFilters();
+    showLoading();
+    setTimeout(function() {
+      updateDashboard();
+      hideLoading();
+    }, 500); // Simulate loading time
+  });
+  
+  // Refresh data button
+  document.getElementById('refreshData').addEventListener('click', function() {
+    showLoading();
+    setTimeout(function() {
+      // Reload data from the current script
+      filteredData = [...sampleData];
+      
+      // Update last updated time
+      updateLastUpdatedTime();
+      
+      // Update dashboard
+      updateDashboard();
+      hideLoading();
+    }, 500);
+  });
+  
+  // Channel filter change - update dependent filters
+  document.getElementById('channelFilter').addEventListener('change', function() {
+    updateDependentFilters('channel', this.value);
+  });
+  
+  // Vendor filter change - update dependent filters
+  document.getElementById('vendorFilter').addEventListener('change', function() {
+    updateDependentFilters('vendor', this.value);
+  });
+  
+  // Search input
+  document.getElementById('searchInput').addEventListener('input', function() {
+    if (this.value.length > 2 || this.value.length === 0) {
+      showLoading();
+      setTimeout(function() {
+        updateDashboard();
+        hideLoading();
+      }, 500); // Debounce search input
+    }
+  });
+  
+  // Chart view options
+  document.querySelectorAll('.chart-option').forEach(option => {
+    option.addEventListener('click', function() {
+      const chartId = this.closest('.chart-card').id;
+      const viewType = this.dataset.view;
+      
+      // Update active class
+      this.closest('.chart-options').querySelectorAll('.chart-option').forEach(opt => {
+        opt.classList.remove('active');
+      });
+      this.classList.add('active');
+      
+      // Update chart based on view type
+      if (chartId === 'salesChartCard') {
+        updateSalesChart(viewType);
+      } else if (chartId === 'productsChartCard') {
+        updateProductsChart(viewType);
+      }
+    });
+  });
+}
+
+// Update filters based on selected value in a parent filter
+function updateDependentFilters(filterType, filterValue) {
+  // Skip if 'All' is selected
+  if (!filterValue) return;
+  
+  // Get filtered data based on the selected filter
+  const baseData = sampleData.filter(item => item[filterType] === filterValue);
+  
+  // Update other filters based on available values in the filtered data
+  if (filterType !== 'channel') {
+    const channels = [...new Set(baseData.map(item => item.channel))];
+    updateFilterOptions('channelFilter', channels);
+  }
+  
+  if (filterType !== 'vendor') {
+    const vendors = [...new Set(baseData.map(item => item.vendor))];
+    updateFilterOptions('vendorFilter', vendors);
+  }
+  
+  if (filterType !== 'wheel') {
+    const wheels = [...new Set(baseData.map(item => item.wheel))];
+    updateFilterOptions('wheelFilter', wheels);
+  }
+  
+  if (filterType !== 'size') {
+    const sizes = [...new Set(baseData.map(item => item.size))];
+    updateFilterOptions('sizeFilter', sizes);
+  }
+  
+  if (filterType !== 'boltPattern') {
+    const boltPatterns = [...new Set(baseData.map(item => item.boltPattern))];
+    updateFilterOptions('boltPatternFilter', boltPatterns);
+  }
+  
+  if (filterType !== 'finish') {
+    const finishes = [...new Set(baseData.map(item => item.finish))];
+    updateFilterOptions('finishFilter', finishes);
+  }
+}
+
+// Update options in a filter dropdown
+function updateFilterOptions(elementId, options) {
+  const dropdown = document.getElementById(elementId);
+  const currentValue = dropdown.value;
+  
+  // Clear existing options
+  dropdown.innerHTML = '<option value="">All</option>';
+  
+  // Add options
+  options.forEach(option => {
+    const optionElement = document.createElement('option');
+    optionElement.value = option;
+    optionElement.textContent = option;
+    dropdown.appendChild(optionElement);
+  });
+  
+  // Restore selected value if it still exists in the new options
+  if (options.includes(currentValue)) {
+    dropdown.value = currentValue;
+  }
+}
+
+// Reset all filters to their default state
+function resetFilters() {
+  // Reset dropdowns
+  document.querySelectorAll('.filter-select').forEach(dropdown => {
+    dropdown.value = '';
+  });
+  
+  // Reset date range to last 30 days
+  setDateRange('last30days');
+  
+  // Reset search
+  document.getElementById('searchInput').value = '';
+  
+  // Reinitialize filter dropdowns
+  initializeFilters();
+}
+
+// Update all charts
+function updateCharts() {
+  updateSalesChart('daily');
+  updateProductsChart('wheel');
+  updateChannelChart();
+}
+
+// Update top products
+function updateTopProducts() {
+  const topProductsList = document.getElementById('topProductsList');
+  
+  // Clear the list
+  topProductsList.innerHTML = '';
+  
+  // Group data by product title
+  const productSales = {};
+  
+  filteredData.forEach(item => {
+    const productTitle = item.productTitle;
+    
+    if (!productTitle) return; // Skip items without product title
+    
+    if (!productSales[productTitle]) {
+      productSales[productTitle] = {
+        sales: 0,
+        count: 0,
+        vendor: item.vendor,
+        wheel: item.wheel,
+        size: item.size,
+        boltPattern: item.boltPattern,
+        finish: item.finish,
+        channel: item.channel
+      };
+    }
+    
+    productSales[productTitle].sales += item.price;
+    productSales[productTitle].count += 1;
+  });
+  
+  // Convert to array and sort by sales
+  const topProducts = Object.entries(productSales)
+    .map(([title, data]) => ({
+      title: title,
+      sales: data.sales,
+      count: data.count,
+      vendor: data.vendor,
+      wheel: data.wheel,
+      size: data.size,
+      boltPattern: data.boltPattern,
+      finish: data.finish,
+      channel: data.channel
+    }))
+    .sort((a, b) => b.sales - a.sales)
+    .slice(0, 10); // Get top 10
+  
+  // Create list items
+  topProducts.forEach(product => {
+    const li = document.createElement('li');
+    li.innerHTML = `
+      <div class="product-info">
+        <div class="product-title">${product.title}</div>
+        <div class="product-details">
+          ${product.count} orders | ${product.vendor} | ${product.size}
+        </div>
+      </div>
+      <div class="product-sales">$${product.sales.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</div>
+    `;
+    
+    // Add click event to filter dashboard
+    li.addEventListener('click', function() {
+      // Set filter dropdowns
+      document.getElementById('channelFilter').value = product.channel;
+      document.getElementById('vendorFilter').value = product.vendor;
+      document.getElementById('wheelFilter').value = product.wheel;
+      document.getElementById('sizeFilter').value = product.size;
+      document.getElementById('boltPatternFilter').value = product.boltPattern;
+      document.getElementById('finishFilter').value = product.finish;
+      
+      // Apply filters
+      showLoading();
+      setTimeout(function() {
+        updateDashboard();
+        hideLoading();
+      }, 500);
+    });
+    
+    topProductsList.appendChild(li);
+  });
+  
+  // Show "No data" message if no products
+  if (topProducts.length === 0) {
+    const li = document.createElement('li');
+    li.textContent = 'No product data available';
+    topProductsList.appendChild(li);
+  }
+}
+
+// Update top products by orders
+function updateTopProductsByOrders() {
+  const topProductsList = document.getElementById('topProductsByOrdersList');
+  
+  // Clear the list
+  topProductsList.innerHTML = '';
+  
+  // Group data by product title
+  const productOrders = {};
+  
+  filteredData.forEach(item => {
+    const productTitle = item.productTitle;
+    
+    if (!productTitle) return; // Skip items without product title
+    
+    if (!productOrders[productTitle]) {
+      productOrders[productTitle] = {
+        sales: 0,
+        count: 0,
+        vendor: item.vendor,
+        wheel: item.wheel,
+        size: item.size,
+        boltPattern: item.boltPattern,
+        finish: item.finish,
+        channel: item.channel
+      };
+    }
+    
+    productOrders[productTitle].sales += item.price;
+    productOrders[productTitle].count += 1;
+  });
+  
+  // Convert to array and sort by order count
+  const topProducts = Object.entries(productOrders)
+    .map(([title, data]) => ({
+      title: title,
+      sales: data.sales,
+      count: data.count,
+      vendor: data.vendor,
+      wheel: data.wheel,
+      size: data.size,
+      boltPattern: data.boltPattern,
+      finish: data.finish,
+      channel: data.channel
+    }))
+    .sort((a, b) => b.count - a.count)
+    .slice(0, 10); // Get top 10
+  
+  // Create list items
+  topProducts.forEach(product => {
+    const li = document.createElement('li');
+    li.innerHTML = `
+      <div class="product-info">
+        <div class="product-title">${product.title}</div>
+        <div class="product-details">
+          ${product.vendor} | ${product.size}
+        </div>
+      </div>
+      <div class="product-sales">${product.count} orders</div>
+    `;
+    
+    // Add click event to filter dashboard
+    li.addEventListener('click', function() {
+      // Set filter dropdowns
+      document.getElementById('channelFilter').value = product.channel;
+      document.getElementById('vendorFilter').value = product.vendor;
+      document.getElementById('wheelFilter').value = product.wheel;
+      document.getElementById('sizeFilter').value = product.size;
+      document.getElementById('boltPatternFilter').value = product.boltPattern;
+      document.getElementById('finishFilter').value = product.finish;
+      
+      // Apply filters
+      showLoading();
+      setTimeout(function() {
+        updateDashboard();
+        hideLoading();
+      }, 500);
+    });
+    
+    topProductsList.appendChild(li);
+  });
+  
+  // Show "No data" message if no products
+  if (topProducts.length === 0) {
+    const li = document.createElement('li');
+    li.textContent = 'No product data available';
+    topProductsList.appendChild(li);
+  }
 } 

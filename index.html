@@ -128,8 +128,88 @@
 
       <!-- Filter Buttons -->
       <div class="filter-buttons">
+        <button id="customViewBtn" class="btn btn-primary">
+          <i class="fas fa-filter"></i> Custom View
+        </button>
         <button id="applyFilters" class="btn btn-primary">Apply Filters</button>
         <button id="resetFilters" class="btn btn-outline">Reset Filters</button>
+      </div>
+    </div>
+
+    <!-- Active Filters Display -->
+    <div class="active-filters-container" id="activeFiltersContainer">
+      <div class="active-filters-label">Active filters:</div>
+      <div class="active-filters" id="activeFilters"></div>
+      <button id="clearAllFilters" class="clear-all-btn">Clear all</button>
+    </div>
+
+    <!-- Custom View Modal -->
+    <div id="customViewModal" class="modal">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h2>Create Custom View</h2>
+          <span class="close-modal">&times;</span>
+        </div>
+        <div class="modal-body">
+          <div class="custom-filter-section">
+            <div class="custom-filter-group">
+              <label class="custom-filter-label">Select Wheels</label>
+              <div class="multi-select-container">
+                <input type="text" class="multi-select-search" id="wheelSearch" placeholder="Search wheels...">
+                <div class="multi-select-dropdown" id="wheelDropdown"></div>
+              </div>
+            </div>
+            
+            <div class="custom-filter-group">
+              <label class="custom-filter-label">Select Vendors</label>
+              <div class="multi-select-container">
+                <input type="text" class="multi-select-search" id="vendorSearch" placeholder="Search vendors...">
+                <div class="multi-select-dropdown" id="vendorDropdown"></div>
+              </div>
+            </div>
+            
+            <div class="custom-filter-group">
+              <label class="custom-filter-label">Select Sizes</label>
+              <div class="multi-select-container">
+                <input type="text" class="multi-select-search" id="sizeSearch" placeholder="Search sizes...">
+                <div class="multi-select-dropdown" id="sizeDropdown"></div>
+              </div>
+            </div>
+            
+            <div class="custom-filter-group">
+              <label class="custom-filter-label">Select Bolt Patterns</label>
+              <div class="multi-select-container">
+                <input type="text" class="multi-select-search" id="boltPatternSearch" placeholder="Search bolt patterns...">
+                <div class="multi-select-dropdown" id="boltPatternDropdown"></div>
+              </div>
+            </div>
+            
+            <div class="custom-filter-group">
+              <label class="custom-filter-label">Select Finishes</label>
+              <div class="multi-select-container">
+                <input type="text" class="multi-select-search" id="finishSearch" placeholder="Search finishes...">
+                <div class="multi-select-dropdown" id="finishDropdown"></div>
+              </div>
+            </div>
+            
+            <div class="custom-filter-group">
+              <label class="custom-filter-label">Select Channels</label>
+              <div class="multi-select-container">
+                <input type="text" class="multi-select-search" id="channelSearch" placeholder="Search channels...">
+                <div class="multi-select-dropdown" id="channelDropdown"></div>
+              </div>
+            </div>
+          </div>
+          
+          <div class="selected-filters-section">
+            <h3>Selected Filters</h3>
+            <div class="selected-filters" id="selectedFilters"></div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button id="applyCustomView" class="btn btn-primary">Apply Custom View</button>
+          <button id="cancelCustomView" class="btn btn-outline">Cancel</button>
+        </div>
       </div>
     </div>
 
