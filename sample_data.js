@@ -1,20 +1,6 @@
 const sampleData = [
   {
     "id": 1,
-    "date": "3/28/2025",
-    "channel": "eBay",
-    "vendor": "Volk",
-    "wheel": "Volk Racing TE37XT SL M-Spec",
-    "size": "16x8 -20",
-    "boltPattern": "6x139.7",
-    "finish": "Pressed Graphite",
-    "quantity": 1,
-    "price": 3142.6,
-    "sku": "V-RacingTE37XTSLMSpec-168-20-61397-PG",
-    "productTitle": "Volk Racing TE37XT SL M-Spec16x8 -206x139.7Pressed Graphite"
-  },
-  {
-    "id": 2,
     "date": "3/30/2025",
     "channel": "eBay",
     "vendor": "Volk",
@@ -28,7 +14,7 @@ const sampleData = [
     "productTitle": "Volk Racing CE28N-Plus18x9.5 +225x114.3Diamond Silver"
   },
   {
-    "id": 3,
+    "id": 2,
     "date": "3/29/2025",
     "channel": "eBay",
     "vendor": "Enkei",
@@ -42,7 +28,7 @@ const sampleData = [
     "productTitle": "Enkei PF0118x8 +455x112Silver"
   },
   {
-    "id": 4,
+    "id": 3,
     "date": "3/29/2025",
     "channel": "Shopify",
     "vendor": "Volk",
@@ -56,7 +42,7 @@ const sampleData = [
     "productTitle": "Volk Racing TE37 Saga SL18x9.5 +455x114.3Pressed Graphite"
   },
   {
-    "id": 5,
+    "id": 4,
     "date": "3/29/2025",
     "channel": "eBay",
     "vendor": "Advan",
@@ -70,7 +56,7 @@ const sampleData = [
     "productTitle": "Advan GT Beyond18x9.5 +385x114.3Titanium Black"
   },
   {
-    "id": 6,
+    "id": 5,
     "date": "3/29/2025",
     "channel": "eBay",
     "vendor": "Volk",
@@ -82,6 +68,20 @@ const sampleData = [
     "price": 3600,
     "sku": "V-RacingTE37SL-1810+40-51143-CP",
     "productTitle": "Volk Racing TE37SL18x10 +405x114.3Chrome Plating"
+  },
+  {
+    "id": 6,
+    "date": "3/28/2025",
+    "channel": "eBay",
+    "vendor": "Volk",
+    "wheel": "Volk Racing TE37XT SL M-Spec",
+    "size": "16x8 -20",
+    "boltPattern": "6x139.7",
+    "finish": "Pressed Graphite",
+    "quantity": 1,
+    "price": 3142.6,
+    "sku": "V-RacingTE37XTSLMSpec-168-20-61397-PG",
+    "productTitle": "Volk Racing TE37XT SL M-Spec16x8 -206x139.7Pressed Graphite"
   },
   {
     "id": 7,
@@ -287,7 +287,7 @@ const sampleData = [
     "wheel": "Volk Racing TE37XT M-Spec",
     "size": "17x8.5 -3",
     "boltPattern": "6x135",
-    "finish": "Bronze",
+    "finish": "",
     "quantity": 1,
     "price": 3307.14,
     "sku": "V-RacingTE37XTMSpec-178.5-3-6135-BR",
@@ -301,7 +301,7 @@ const sampleData = [
     "wheel": "Volk Racing TE37XT M-Spec",
     "size": "16x8 -20",
     "boltPattern": "6x139.7",
-    "finish": "Pressed Graphite",
+    "finish": "Bronze",
     "quantity": 1,
     "price": 2765.49,
     "sku": "V-RacingTE37XTMSpec-168-20-61397-PG",
