@@ -1047,7 +1047,8 @@ function updateSalesChart(viewType = 'daily') {
     if (!salesByDate[dateKey]) {
       salesByDate[dateKey] = {
         sales: 0,
-        quantity: 0
+        quantity: 0,
+        date: date // Store the actual date object for sorting
       };
     }
     
@@ -1055,15 +1056,21 @@ function updateSalesChart(viewType = 'daily') {
     salesByDate[dateKey].quantity += 1; // Count orders, quantity is always 1
   });
   
-  // Convert to arrays for Highcharts
-  const dates = Object.keys(salesByDate).sort();
-  const salesData = dates.map(date => salesByDate[date].sales);
-  const quantityData = dates.map(date => salesByDate[date].quantity);
+  // Convert to arrays for Highcharts and sort chronologically
+  let dateEntries = Object.entries(salesByDate);
+  
+  // Sort entries by the actual date object
+  dateEntries.sort((a, b) => a[1].date - b[1].date);
+  
+  // Now extract the sorted keys and data
+  const dates = dateEntries.map(entry => entry[0]);
+  const salesData = dateEntries.map(entry => entry[1].sales);
+  const quantityData = dateEntries.map(entry => entry[1].quantity);
   
   // Format dates based on view type
   const formattedDates = dates.map(date => {
     if (viewType === 'daily') {
-      return date;
+      return formatDateShort(date); // Use more readable format for display
     } else if (viewType === 'weekly') {
       const [year, week] = date.split('-W');
       return `Week ${week}, ${year}`;
@@ -2306,4 +2313,12 @@ function updateActiveProductFiltersDisplay() {
     
     activeFiltersContainer.appendChild(pill);
   });
-} 
+}
+
+// Format date for display as MM/DD (more readable for charts)
+function formatDateShort(dateStr) {
+  const date = new Date(dateStr);
+  const month = date.getMonth() + 1;
+  const day = date.getDate();
+  return `${month}/${day}`;
+}
